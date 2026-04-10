@@ -3,9 +3,9 @@
   "theme": "sequoia",
   "name": "UnPay Docs",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0b4370",
+    "light": "#fbbe80",
+    "dark": "#0b4370"
   },
   "favicon": "/favicon.svg",
   "navigation": {
