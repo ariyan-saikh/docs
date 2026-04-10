@@ -12,11 +12,6 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "icon": "book-open-cover",
-          "href": "https://docs.unpay.co"
-        },
-        {
           "anchor": "Blog",
           "icon": "newspaper",
           "href": "https://www.unpay.co/blog"
@@ -78,6 +73,13 @@
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
             ]
+          },
+          {
+            "group": "Payouts",
+            "pages": [
+              "single-payout",
+              "bulk-payout"
+            ]
           }
         ]
       }
@@ -121,5 +123,8 @@
   },
   "appearance": {
     "default": "light"
+  },
+  "banner": {
+    "dismissible": false
   }
 }
