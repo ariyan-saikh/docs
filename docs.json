@@ -11,8 +11,7 @@
   "navigation": {
     "dropdowns": [
       {
-        "dropdown": "Documentation",
-        "hidden": true,
+        "dropdown": "",
         "tabs": [
           {
             "tab": "Guides",
