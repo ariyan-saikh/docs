@@ -123,8 +123,5 @@
   },
   "appearance": {
     "default": "light"
-  },
-  "banner": {
-    "dismissible": false
   }
 }
