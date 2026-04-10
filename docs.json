@@ -12,6 +12,7 @@
     "dropdowns": [
       {
         "dropdown": "Untitled Dropdown",
+        "hidden": true,
         "tabs": [
           {
             "tab": "Guides",
