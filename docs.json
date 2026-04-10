@@ -12,11 +12,6 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "icon": "book-open-cover",
-          "href": "https://docs.unpay.co"
-        },
-        {
           "anchor": "Blog",
           "icon": "newspaper",
           "href": "https://www.unpay.co/blog"
