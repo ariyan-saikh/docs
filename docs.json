@@ -11,101 +11,106 @@
   "navigation": {
     "tabs": [
       {
+<<<<<<< HEAD
         "tab": "Guides",
         "groups": [
+=======
+        "dropdown": "",
+          "tabs": [
+>>>>>>> a8929336e5b2c9c099754323fd7b0abb6901ee0a
           {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
-          }
-        ]
+              "group": "Getting started",
+              "pages": [
+                "index",
+                "quickstart",
+                "development"
+              ]
+            },
+            {
+              "group": "Customization",
+              "pages": [
+                "essentials/settings",
+                "essentials/navigation"
+              ]
+            },
+            {
+              "group": "Writing content",
+              "pages": [
+                "essentials/markdown",
+                "essentials/code",
+                "essentials/images",
+                "essentials/reusable-snippets"
+              ]
+            },
+            {
+              "group": "AI tools",
+              "pages": [
+                "ai-tools/cursor",
+                "ai-tools/claude-code",
+                "ai-tools/windsurf"
+              ]
+            }
+          ]
+        },
+        {
+          "tab": "API reference",
+          "groups": [
+            {
+              "group": "API documentation",
+              "pages": [
+                "api-reference/introduction"
+              ]
+            },
+            {
+              "group": "Endpoint examples",
+              "pages": [
+                "api-reference/endpoint/get",
+                "api-reference/endpoint/create",
+                "api-reference/endpoint/delete",
+                "api-reference/endpoint/webhook"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "logo": {
+      "light": "/logo/light.svg",
+      "dark": "/logo/dark.svg"
+    },
+    "navbar": {
+      "links": [
+        {
+          "label": "Support",
+          "href": "mailto:hi@mintlify.com"
+        }
+      ],
+      "primary": {
+        "type": "button",
+        "label": "Login",
+        "href": "https://app.unpay.in/signin"
       }
-    ]
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+    },
+    "contextual": {
+      "options": [
+        "copy",
+        "view",
+        "chatgpt",
+        "claude",
+        "perplexity",
+        "mcp",
+        "cursor",
+        "vscode"
+      ]
+    },
+    "footer": {
+      "socials": {
+        "x": "https://x.com/mintlify",
+        "github": "https://github.com/mintlify",
+        "linkedin": "https://linkedin.com/company/mintlify"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Login",
-      "href": "https://app.unpay.in/signin"
+    },
+    "appearance": {
+      "default": "light"
     }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
-  },
-  "appearance": {
-    "default": "light"
   }
-}
