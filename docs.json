@@ -73,6 +73,13 @@
               "api-reference/endpoint/delete",
               "api-reference/endpoint/webhook"
             ]
+          },
+          {
+            "group": "Payouts",
+            "pages": [
+              "single-payout",
+              "bulk-payout"
+            ]
           }
         ]
       }
