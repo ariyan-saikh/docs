@@ -1,0 +1,4 @@
+/* Hide the "Powered by Mintlify" attribution link injected at the bottom of the page */
+a[href*="mintlify.com?utm_campaign=poweredBy"] {
+  display: none !important;
+}
