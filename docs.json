@@ -95,6 +95,12 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Changelog",
+        "pages": [
+          "changelog/api"
+        ]
       }
     ]
   },
