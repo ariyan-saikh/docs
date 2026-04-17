@@ -99,8 +99,8 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:helpdesk@unpay.in"
+        "label": "Contact Us",
+        "href": "https://www.unpay.co/contact"
       }
     ],
     "primary": {
