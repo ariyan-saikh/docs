@@ -19,7 +19,8 @@
             "pages": [
               "index",
               "quickstart",
-              "how-unpay-works"
+              "how-unpay-works",
+              "core-concepts"
             ]
           },
           {
