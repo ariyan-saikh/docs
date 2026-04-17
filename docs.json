@@ -84,18 +84,30 @@
         "tab": "API reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Introduction",
             "pages": [
               "api-reference/introduction"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "UPI Collect",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/endpoint/upi-collect-request",
+              "api-reference/endpoint/upi-collect-status"
+            ]
+          },
+          {
+            "group": "Connected Banking",
+            "pages": [
+              "api-reference/endpoint/banking-accounts",
+              "api-reference/endpoint/banking-transfer"
+            ]
+          },
+          {
+            "group": "Lending OS",
+            "pages": [
+              "api-reference/endpoint/lending-loan-apply",
+              "api-reference/endpoint/lending-loan-status"
             ]
           }
         ]
