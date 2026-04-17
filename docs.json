@@ -50,6 +50,7 @@
       },
       {
         "tab": "Guides",
+        "icon": "book-blank",
         "groups": [
           {
             "group": "UPI Collect",
@@ -61,6 +62,7 @@
       },
       {
         "tab": "API Reference",
+        "icon": "code",
         "groups": [
           {
             "group": "Getting started",
