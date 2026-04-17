@@ -66,6 +66,26 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Payments",
+        "groups": [
+          {
+            "group": "UPI Collect",
+            "pages": []
+          }
+        ]
+      },
+      {
+        "tab": "Banking",
+        "groups": [
+          {
+            "group": "Connected Banking",
+            "pages": [
+              "yes-bank"
+            ]
+          }
+        ]
       }
     ]
   },
