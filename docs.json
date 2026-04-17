@@ -14,7 +14,7 @@
         "tab": "Home",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Overview",
             "pages": [
               "index",
               "quickstart",
@@ -22,14 +22,14 @@
             ]
           },
           {
-            "group": "Customization",
+            "group": "Products",
             "pages": [
               "essentials/settings",
               "essentials/navigation"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Platform",
             "pages": [
               "essentials/markdown",
               "essentials/code",
@@ -38,7 +38,7 @@
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Developer",
             "pages": [
               "ai-tools/cursor",
               "ai-tools/claude-code",
@@ -48,7 +48,7 @@
         ]
       },
       {
-        "tab": "Payments",
+        "tab": "Guides",
         "groups": [
           {
             "group": "UPI Collect",
@@ -59,32 +59,10 @@
         ]
       },
       {
-        "tab": "Banking",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "Connected Banking",
-            "pages": [
-              "yes-bank"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Lending OS",
-        "groups": [
-          {
-            "group": "Loan Management System",
-            "pages": [
-              "loan-management-system"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "Introduction",
+            "group": "Getting started",
             "pages": [
               "api-reference/introduction"
             ]
