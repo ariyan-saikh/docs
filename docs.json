@@ -91,11 +91,11 @@
       },
       {
         "tab": "Lending OS",
-        "products": [
+        "versions": [
           {
-            "product": "Loan Management System",
+            "version": "Loan Man",
             "pages": [
-              "loan-creation"
+              "creation"
             ]
           }
         ]
