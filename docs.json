@@ -68,7 +68,9 @@
           {
             "group": "Getting started",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/overview",
+              "api-reference/authentication",
+              "api-reference/error-and-codes"
             ]
           },
           {
