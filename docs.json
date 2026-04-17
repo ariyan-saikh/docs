@@ -91,9 +91,9 @@
       },
       {
         "tab": "Lending OS",
-        "anchors": [
+        "products": [
           {
-            "anchor": "Loan Management System",
+            "product": "Loan Management System",
             "pages": [
               "loan-creation"
             ]
