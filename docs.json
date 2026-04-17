@@ -91,12 +91,10 @@
       },
       {
         "tab": "Lending OS",
-        "menu": [
+        "groups": [
           {
-            "item": "LMS",
-            "pages": [
-              "application"
-            ]
+            "group": "Loan Management System",
+            "pages": []
           }
         ]
       }
