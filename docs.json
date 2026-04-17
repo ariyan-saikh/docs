@@ -12,6 +12,7 @@
     "tabs": [
       {
         "tab": "Home",
+        "icon": "house-blank",
         "groups": [
           {
             "group": "Overview",
