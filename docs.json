@@ -91,11 +91,11 @@
       },
       {
         "tab": "Lending OS",
-        "versions": [
+        "menu": [
           {
-            "version": "Loan Man",
+            "item": "LMS",
             "pages": [
-              "creation"
+              "application"
             ]
           }
         ]
