@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "linden",
+  "theme": "luma",
   "name": "UnPay Docs",
   "colors": {
     "primary": "#0b4370",
