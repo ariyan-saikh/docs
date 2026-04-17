@@ -95,13 +95,6 @@
             ]
           }
         ]
-      },
-      {
-        "tab": "Changelog",
-        "icon": "square-pen",
-        "pages": [
-          "changelog/api"
-        ]
       }
     ]
   },
