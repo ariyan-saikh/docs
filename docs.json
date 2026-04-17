@@ -91,11 +91,12 @@
       },
       {
         "tab": "Lending OS",
+        "icon": "money-bill-trend-up",
         "groups": [
           {
             "group": "Loan Management System",
             "pages": [
-              "about-lms"
+              "loan-management-system"
             ]
           }
         ]
