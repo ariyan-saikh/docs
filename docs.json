@@ -93,7 +93,10 @@
         "tab": "Lending OS",
         "anchors": [
           {
-            "anchor": "Loan Management System"
+            "anchor": "Loan Management System",
+            "pages": [
+              "loan-creation"
+            ]
           }
         ]
       }
