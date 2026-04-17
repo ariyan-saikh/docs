@@ -94,7 +94,9 @@
         "groups": [
           {
             "group": "Loan Management System",
-            "pages": []
+            "pages": [
+              "about-lms"
+            ]
           }
         ]
       }
