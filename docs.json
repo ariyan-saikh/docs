@@ -91,12 +91,9 @@
       },
       {
         "tab": "Lending OS",
-        "dropdowns": [
+        "anchors": [
           {
-            "dropdown": "Loan Management System",
-            "pages": [
-              "loan-creation"
-            ]
+            "anchor": "Loan Management System"
           }
         ]
       }
