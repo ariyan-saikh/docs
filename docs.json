@@ -88,6 +88,17 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Lending OS",
+        "dropdowns": [
+          {
+            "dropdown": "Loan Management System",
+            "pages": [
+              "loan-creation"
+            ]
+          }
+        ]
       }
     ]
   },
