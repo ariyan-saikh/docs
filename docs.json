@@ -93,6 +93,13 @@
               "api-reference/endpoint/lending-loan-apply",
               "api-reference/endpoint/lending-loan-status"
             ]
+          },
+          {
+            "group": "Payouts",
+            "pages": [
+              "api-reference/endpoint/payouts-pay",
+              "api-reference/endpoint/payouts-status"
+            ]
           }
         ]
       }
