@@ -126,6 +126,145 @@
           "200": { "description": "Loan details" }
         }
       }
+    },
+    "/v1/user/product/payouts/pay": {
+      "post": {
+        "tags": ["Payouts"],
+        "summary": "Initiate Payout",
+        "description": "Initiate a payout to a registered beneficiary using IMPS, NEFT, or RTGS. Requires OTP verification.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["debit_account_id", "bene_id", "bene_bank_id", "amount", "payment_mode", "narration", "purpose", "otp"],
+                "properties": {
+                  "debit_account_id": {
+                    "type": "string",
+                    "description": "Your UnPay wallet/account ID to debit from.",
+                    "example": "UNPW4065468842"
+                  },
+                  "bene_id": {
+                    "type": "string",
+                    "description": "Registered beneficiary ID.",
+                    "example": "BENE0407717739"
+                  },
+                  "bene_bank_id": {
+                    "type": "integer",
+                    "description": "Internal bank ID of the beneficiary's bank.",
+                    "example": 86
+                  },
+                  "amount": {
+                    "type": "number",
+                    "description": "Amount to transfer (in INR).",
+                    "example": 5
+                  },
+                  "payment_mode": {
+                    "type": "string",
+                    "enum": ["IMPS", "NEFT", "RTGS"],
+                    "description": "Payment mode for the transfer.",
+                    "example": "IMPS"
+                  },
+                  "narration": {
+                    "type": "string",
+                    "description": "Transaction narration or reference note.",
+                    "example": "payout"
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "description": "Purpose of the payout.",
+                    "example": "test"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Additional notes for internal tracking.",
+                    "example": "test"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "description": "One-time password for authorizing the payout.",
+                    "example": "316897"
+                  }
+                }
+              },
+              "example": {
+                "debit_account_id": "UNPW4065468842",
+                "bene_id": "BENE0407717739",
+                "bene_bank_id": 86,
+                "amount": 5,
+                "payment_mode": "IMPS",
+                "narration": "payout",
+                "purpose": "test",
+                "notes": "test",
+                "otp": "316897"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payout initiated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "transaction_id": { "type": "string", "example": "TXN20260413001" },
+                    "status": { "type": "string", "example": "PENDING" },
+                    "message": { "type": "string", "example": "Payout initiated successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad request — missing or invalid fields" },
+          "401": { "description": "Unauthorized — invalid or expired Bearer token" },
+          "422": { "description": "Unprocessable — invalid OTP or insufficient balance" }
+        }
+      }
+    },
+    "/v1/user/product/payouts/status/{transaction_id}": {
+      "get": {
+        "tags": ["Payouts"],
+        "summary": "Get Payout Status",
+        "description": "Retrieve the current status of a previously initiated payout transaction.",
+        "parameters": [
+          {
+            "name": "transaction_id",
+            "in": "path",
+            "required": true,
+            "description": "The transaction ID returned from the Initiate Payout response.",
+            "schema": { "type": "string", "example": "TXN20260413001" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payout status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transaction_id": { "type": "string" },
+                    "status": {
+                      "type": "string",
+                      "enum": ["PENDING", "PROCESSING", "SUCCESS", "FAILED"],
+                      "example": "SUCCESS"
+                    },
+                    "amount": { "type": "number", "example": 5 },
+                    "payment_mode": { "type": "string", "example": "IMPS" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "404": { "description": "Transaction not found" }
+        }
+      }
     }
   },
   "webhooks": {
