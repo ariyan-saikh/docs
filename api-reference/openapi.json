@@ -220,7 +220,7 @@
       }
     },
     "/v1/user/product/payouts/status": {
-      "get": {
+      "post": {
         "tags": ["Payouts"],
         "summary": "Get Payout Status",
         "description": "Retrieve the current status of a previously initiated payout transaction.",
