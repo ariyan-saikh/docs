@@ -138,7 +138,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["debit_account_id", "bene_id", "bene_bank_id", "amount", "payment_mode", "narration", "purpose", "otp"],
+                "required": ["debit_account_id", "bene_id", "bene_bank_id", "amount", "payment_mode", "narration", "purpose"],
                 "properties": {
                   "debit_account_id": {
                     "type": "string",
@@ -180,11 +180,6 @@
                     "type": "string",
                     "description": "Additional notes for internal tracking.",
                     "example": "test"
-                  },
-                  "otp": {
-                    "type": "string",
-                    "description": "One-time password for authorizing the payout.",
-                    "example": "316897"
                   }
                 }
               },
@@ -196,8 +191,7 @@
                 "payment_mode": "IMPS",
                 "narration": "payout",
                 "purpose": "test",
-                "notes": "test",
-                "otp": "316897"
+                "notes": "test"
               }
             }
           }
@@ -225,20 +219,44 @@
         }
       }
     },
-    "/v1/user/product/payouts/status/{transaction_id}": {
+    "/v1/user/product/payouts/status": {
       "get": {
         "tags": ["Payouts"],
         "summary": "Get Payout Status",
         "description": "Retrieve the current status of a previously initiated payout transaction.",
-        "parameters": [
-          {
-            "name": "transaction_id",
-            "in": "path",
-            "required": true,
-            "description": "The transaction ID returned from the Initiate Payout response.",
-            "schema": { "type": "string", "example": "TXN20260413001" }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["debit_account_id", "transaction_id", "reference_id"],
+                "properties": {
+                  "debit_account_id": {
+                    "type": "string",
+                    "description": "Your UnPay wallet/account ID to debit from.",
+                    "example": "UNPW4065468842"
+                  },
+                  "transaction_id": {
+                    "type": "string",
+                    "description": "Registered Transaction ID.",
+                    "example": "BENE0407717739"
+                  },
+                  "reference_id": {
+                    "type": "string",
+                    "description": "Reference ID for internal tracking. or same as transaction_id",
+                    "example": "TEST87654456789"
+                  }
+                }
+              },
+              "example": {
+                "debit_account_id": "UNPW4065468842",
+                "transaction_id": "BENE0407717739",
+                "reference_id": "TEST87654456789"
+              }
+            }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Payout status retrieved successfully",
@@ -252,10 +270,7 @@
                       "type": "string",
                       "enum": ["PENDING", "PROCESSING", "SUCCESS", "FAILED"],
                       "example": "SUCCESS"
-                    },
-                    "amount": { "type": "number", "example": 5 },
-                    "payment_mode": { "type": "string", "example": "IMPS" },
-                    "timestamp": { "type": "string", "format": "date-time" }
+                    }
                   }
                 }
               }
