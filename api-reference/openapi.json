@@ -204,7 +204,10 @@
             "name": "Content-Type",
             "in": "header",
             "required": true,
-            "schema": { "type": "string", "default": "application/json" },
+            "schema": {
+              "type": "string",
+              "default": "application/json"
+            },
             "description": "Must be `application/json`"
           }
         ],
@@ -221,12 +224,12 @@
                   "body": {
                     "type": "string",
                     "description": "AES-256-CBC encrypted payout payload (HEX encoded). Encrypt either Option A or Option B plaintext JSON — see description above.",
-                    "example": "GFDFGHJKLKJHGFGFFGHJKJHGFGHJKJHGFGHJKJHGFFGIUYKJHGFGHJ..."
+                    "example": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
                   }
                 }
               },
               "example": {
-                "body": "GFDFGHJKLKJHGFGFFGHJKJHGFGHJKJHGFGHJKJHGFFGIUYKJHGFGHJ..."
+                "body": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
               }
             }
           }
@@ -274,16 +277,25 @@
     },
     "/v1/tech/product/payouts/status": {
       "post": {
-        "tags": ["Payouts — Tech API"],
+        "tags": [
+          "Payouts — Tech API"
+        ],
         "summary": "Get Payout Status",
         "description": "Retrieve the status of a previously initiated payout transaction. Authenticate using your **x-api-key**.\n\nEncrypt the plaintext payload using **AES-256-CBC** (HEX output) and send it in the `body` field.\n\n**Required headers:** `x-api-key`, `Content-Type: application/json`\n\n**Plaintext payload fields:**\n```\ntransaction_id\n```\n\nSee the [AES Encryption Guide](/guides/aes-encryption) for step-by-step instructions and code examples.",
-        "security": [{ "apiKeyAuth": [] }],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "Content-Type",
             "in": "header",
             "required": true,
-            "schema": { "type": "string", "default": "application/json" },
+            "schema": {
+              "type": "string",
+              "default": "application/json"
+            },
             "description": "Must be `application/json`"
           }
         ],
@@ -293,17 +305,19 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["body"],
+                "required": [
+                  "body"
+                ],
                 "properties": {
                   "body": {
                     "type": "string",
                     "description": "AES-256-CBC encrypted payload (HEX encoded). Encrypt the plaintext JSON containing the transaction_id.",
-                    "example": "GFDFGHJKLKJHGFGFFGHJKJHGFGHJKJHGFGHJKJHGFFGIUYKJHGFGHJ..."
+                    "example": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
                   }
                 }
               },
               "example": {
-                "body": "GFDFGHJKLKJHGFGFFGHJKJHGFGHJKJHGFGHJKJHGFFGIUYKJHGFGHJ..."
+                "body": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
               }
             }
           }
@@ -316,40 +330,77 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "transaction_id": { "type": "string", "example": "TXN20260413001" },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "transaction_id": {
+                      "type": "string",
+                      "example": "TXN20260413001"
+                    },
                     "status": {
                       "type": "string",
-                      "enum": ["PENDING", "PROCESSING", "SUCCESS", "FAILED"],
+                      "enum": [
+                        "PENDING",
+                        "PROCESSING",
+                        "SUCCESS",
+                        "FAILED"
+                      ],
                       "example": "SUCCESS"
                     },
-                    "amount": { "type": "number", "example": 5 },
-                    "payment_mode": { "type": "string", "example": "IMPS" },
-                    "timestamp": { "type": "string", "format": "date-time" }
+                    "amount": {
+                      "type": "number",
+                      "example": 5
+                    },
+                    "payment_mode": {
+                      "type": "string",
+                      "example": "IMPS"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
                   }
                 }
               }
             }
           },
-          "400": { "description": "Bad request — missing or invalid body" },
-          "401": { "description": "Unauthorized — invalid x-api-key" },
-          "422": { "description": "Unprocessable — decryption failure or invalid payload" },
-          "404": { "description": "Transaction not found" }
+          "400": {
+            "description": "Bad request — missing or invalid body"
+          },
+          "401": {
+            "description": "Unauthorized — invalid x-api-key"
+          },
+          "422": {
+            "description": "Unprocessable — decryption failure or invalid payload"
+          },
+          "404": {
+            "description": "Transaction not found"
+          }
         }
       }
     },
     "/v1/tech/product/payouts/fetch-balance": {
       "post": {
-        "tags": ["Payouts — Tech API"],
+        "tags": [
+          "Payouts — Tech API"
+        ],
         "summary": "Fetch Payout Balance",
         "description": "Retrieve the available payout balance for a given debit account. Authenticate using your **x-api-key**.\n\nEncrypt the plaintext payload using **AES-256-CBC** (HEX output) and send it in the `body` field.\n\n**Required headers:** `x-api-key`, `Content-Type: application/json`\n\n**Plaintext payload fields:**\n```\ndebit_account_id\n```\n\nSee the [AES Encryption Guide](/guides/aes-encryption) for step-by-step instructions and code examples.",
-        "security": [{ "apiKeyAuth": [] }],
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "Content-Type",
             "in": "header",
             "required": true,
-            "schema": { "type": "string", "default": "application/json" },
+            "schema": {
+              "type": "string",
+              "default": "application/json"
+            },
             "description": "Must be `application/json`"
           }
         ],
@@ -359,17 +410,19 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["body"],
+                "required": [
+                  "body"
+                ],
                 "properties": {
                   "body": {
                     "type": "string",
                     "description": "AES-256-CBC encrypted payload (HEX encoded). Encrypt the plaintext JSON containing the debit_account_id.",
-                    "example": "GFDFGHJKLKJHGFGFFGHJKJHGFGHJKJHGFGHJKJHGFFGIUYKJHGFGHJ..."
+                    "example": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
                   }
                 }
               },
               "example": {
-                "body": "GFDFGHJKLKJHGFGFFGHJKJHGFGHJKJHGFGHJKJHGFFGIUYKJHGFGHJ..."
+                "body": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
               }
             }
           }
@@ -382,18 +435,36 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "debit_account_id": { "type": "string", "example": "UNPW4065468842" },
-                    "available_balance": { "type": "number", "example": 10000.00 },
-                    "currency": { "type": "string", "example": "INR" }
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "debit_account_id": {
+                      "type": "string",
+                      "example": "UNPW4065468842"
+                    },
+                    "available_balance": {
+                      "type": "number",
+                      "example": 10000.00
+                    },
+                    "currency": {
+                      "type": "string",
+                      "example": "INR"
+                    }
                   }
                 }
               }
             }
           },
-          "400": { "description": "Bad request — missing or invalid body" },
-          "401": { "description": "Unauthorized — invalid x-api-key" },
-          "422": { "description": "Unprocessable — decryption failure or invalid payload" }
+          "400": {
+            "description": "Bad request — missing or invalid body"
+          },
+          "401": {
+            "description": "Unauthorized — invalid x-api-key"
+          },
+          "422": {
+            "description": "Unprocessable — decryption failure or invalid payload"
+          }
         }
       }
     }
