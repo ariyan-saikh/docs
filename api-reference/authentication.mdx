@@ -1,3 +1,48 @@
 ---
 title: "Authentication"
+description: "All UnPay API endpoints use API Key authentication via the x-api-key header."
 ---
+
+UnPay uses **API Key** authentication for all tech/server-to-server endpoints.
+
+## API Key
+
+Generated from **Settings → API Security** in the [UnPay Dashboard](https://app.unpay.in).
+
+```http
+x-api-key: <your_api_key>
+```
+
+Pass the key in every request header. There are no session tokens or expiry — rotate your key manually from the dashboard when needed.
+
+<Warning>
+  Keep your API key private. Never expose it in client-side code, browser requests, or public repositories.
+</Warning>
+
+---
+
+## API Security & Encryption
+
+In addition to API Key authentication, all Payout and Service endpoints require **end-to-end payload encryption**. This protects sensitive financial data in transit.
+
+To make an API call, you must:
+1. Serialize your request payload to a JSON string.
+2. Encrypt it using **AES-256-CBC** with your dashboard-issued **AES Key** and **AES IV**.
+3. Encode the output as a **HEX string**.
+4. Pass the HEX string in the `body` field.
+
+### AES Key & IV
+
+Both keys are generated from the [UnPay Dashboard](https://app.unpay.in) under **Settings → API Security**:
+- **AES Key** — Secret encryption key
+- **AES IV** — Initialization vector
+
+```json
+{
+  "body": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
+}
+```
+
+<Card title="AES-256-CBC Encryption Guide" icon="lock" href="/guides/aes-encryption">
+  Learn how to encrypt payloads with step-by-step code examples in Node.js, Python, and PHP.
+</Card>

@@ -1,0 +1,105 @@
+---
+title: "AES-256-CBC Encryption"
+description: "How to encrypt your payout payload before sending it to the UnPay API"
+---
+
+<Note>
+  All UnPay payout requests require the payload to be encrypted using **AES-256-CBC** with output in **HEX format**. Your AES Key and IV are generated from the [UnPay Dashboard](https://app.unpay.in).
+</Note>
+
+## Overview
+
+UnPay encrypts payout data end-to-end to protect sensitive financial information in transit. Before calling any payout endpoint, you must:
+
+1. Build the **plaintext JSON payload** with your payout fields
+2. Encrypt it using **AES-256-CBC** with your dashboard-issued AES Key and IV
+3. Encode the encrypted bytes as a **HEX string** (not Base64)
+4. Send the HEX string as the `body` field in your API request
+
+## Get your AES Key and IV
+
+Log in to [https://app.unpay.in](https://app.unpay.in) → **Settings** → **API Security** to generate your:
+
+- **AES Key** — secret key
+- **AES IV** — initialization vector
+
+<Warning>
+  Keep your AES Key and IV private. Treat them like passwords — never expose them in client-side code or public repositories.
+</Warning>
+
+---
+
+## Plaintext payload structure
+
+### Option A — Existing beneficiary
+
+Use this when the beneficiary is already registered in your UnPay account.
+
+```json
+{
+  "debit_account_id": "[UNPAY_ACCOUNT_ID]",
+  "bene_id": "[BENEFICIARY_ID]",
+  "bene_bank_id": 1,
+  "amount": [AMOUNT],
+  "payment_mode": "[PAYMENT_MODE]",
+  "narration": "[NARRATION_TEXT]",
+  "purpose": "[PURPOSE_TEXT]",
+  "notes": "[NOTES_TEXT]"
+}
+```
+
+### Option B — Inline beneficiary
+
+Use this to send a payout without pre-registering a beneficiary.
+
+```json
+{
+  "debit_account_id": "[UNPAY_ACCOUNT_ID]",
+  "name": "[NAME]",
+  "mobile": "[MOBILE_NUMBER]",
+  "email": "[EMAIL_ADDRESS]",
+  "bank_id": "[BANK_ID]",
+  "bank_acc_num": "[BANK_ACCOUNT_NUMBER]",
+  "ifsc_code": "[IFSC_CODE]",
+  "bank_owner_name": "[BANK_OWNER_NAME]",
+  "amount": [AMOUNT],
+  "payment_mode": "[PAYMENT_MODE]",
+  "narration": "[NARRATION_TEXT]",
+  "purpose": "[PURPOSE_TEXT]",
+  "notes": "[NOTES_TEXT]"
+}
+```
+
+---
+
+## Encryption steps
+
+<Steps>
+  <Step title="Serialize the payload to a JSON string">
+    Convert your plaintext object to a compact JSON string. Do not add extra whitespace.
+  </Step>
+  <Step title="Encrypt with AES-256-CBC">
+    Use AES-256-CBC mode with your AES Key and AES IV. The output is raw bytes.
+  </Step>
+  <Step title="Encode output as HEX">
+    Convert the encrypted bytes to a HEX string. **Do not use Base64.**
+  </Step>
+  <Step title="Send in the body field">
+    Place the HEX string as the value of the `body` field in your request JSON.
+  </Step>
+</Steps>
+
+---
+
+---
+
+## Curl example (after encrypting manually)
+
+```bash
+curl --location 'https://app.unpay.in/api/v1/tech/product/payouts/pay' \
+--header 'x-api-key: your_api_key_here' \
+--header 'Content-Type: application/json' \
+--data '{
+    "body": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
+}'
+```

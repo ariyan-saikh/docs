@@ -41,22 +41,18 @@ Welcome to the UnPay API reference. Our APIs are designed to be easily integrate
     Send payouts to beneficiaries via IMPS, NEFT, or RTGS instantly.
   </Card>
   <Card
-    title="API Specification"
-    icon="file-code"
-    href="/api-reference/openapi.json"
+    title="Services"
+    icon="server"
+    href="/api-reference/endpoint/services-get"
   >
-    View the full OpenAPI 3.1.0 specification.
+    Manage and fetch details for all your accessible UnPay services and accounts.
   </Card>
 </CardGroup>
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens. You can obtain your API keys from the UnPay Dashboard.
+All API endpoints are authenticated using an **API Key** passed in the `x-api-key` request header. Obtain your key from the UnPay Dashboard under **Settings → API Security**.
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+```http
+x-api-key: your_api_key_here
 ```
