@@ -1,4 +1,56 @@
 ---
-title: 'Error & codes'
+title: 'Errors & Status Codes'
+description: 'A comprehensive list of HTTP status codes returned by the UnPay API'
 ---
 
+The UnPay API uses conventional HTTP response codes to indicate the success or failure of an API request. In general:
+
+- Codes in the `2xx` range indicate success.
+- Codes in the `3xx` range indicate redirection.
+- Codes in the `4xx` range indicate an error that failed given the information provided (e.g., a required parameter was omitted, authentication failed, etc.).
+- Codes in the `5xx` range indicate an error with UnPay's servers.
+
+### 2xx Success
+
+| Code | Message | Description |
+|---|---|---|
+| `200` | OK | Success |
+| `201` | CREATED | Created successfully |
+| `202` | ACCEPTED | Request accepted |
+| `204` | NO_CONTENT | No content |
+
+### 3xx Redirection
+
+| Code | Message | Description |
+|---|---|---|
+| `300` | MULTIPLE_CHOICES | Multiple choices |
+| `301` | MOVED_PERMANENTLY | Moved permanently |
+| `302` | FOUND | Found |
+| `303` | SEE_OTHER | See other |
+| `304` | NOT_MODIFIED | Not modified |
+| `305` | USE_PROXY | Use proxy |
+| `307` | TEMPORARY_REDIRECT | Temporary redirect |
+| `308` | PERMANENT_REDIRECT | Permanent redirect |
+
+### 4xx Client Errors
+
+| Code | Message | Description |
+|---|---|---|
+| `400` | BAD_REQUEST | Bad request |
+| `401` | UNAUTHORIZED | Unauthorized |
+| `403` | FORBIDDEN | Forbidden |
+| `404` | NOT_FOUND | Resource not found |
+| `405` | METHOD_NOT_ALLOWED | Method not allowed |
+| `409` | CONFLICT | Conflict |
+| `422` | UNPROCESSABLE_ENTITY | Unprocessable entity |
+| `429` | TOO_MANY_REQUESTS | Too many requests |
+
+### 5xx Server Errors
+
+| Code | Message | Description |
+|---|---|---|
+| `500` | INTERNAL_SERVER_ERROR | Internal server error |
+| `501` | NOT_IMPLEMENTED | Not implemented |
+| `502` | BAD_GATEWAY | Bad gateway |
+| `503` | SERVICE_UNAVAILABLE | Service unavailable |
+| `504` | GATEWAY_TIMEOUT | Gateway timeout |
