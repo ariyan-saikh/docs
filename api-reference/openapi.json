@@ -467,6 +467,133 @@
           }
         }
       }
+    },
+    "/v1/tech/services/get": {
+      "get": {
+        "tags": ["Services"],
+        "summary": "Get Service Details",
+        "description": "Retrieve all services, products, providers, and account details the authenticated user has access to.\n\nThis single endpoint returns:\n- **Products** — all products available to the user\n- **Services** — all services under each product\n- **Providers** — service providers linked to the user\n- **Debit accounts** — user's debit account details\n- **Credit accounts** — user's credit account details\n\nAuthenticate using your **x-api-key**. Encrypt the plaintext payload using **AES-256-CBC** (HEX output) and send it in the `body` field.\n\n**Required headers:** `x-api-key`, `Content-Type: application/json`\n\n**Plaintext payload fields:**\n```\nuser_id\n```\n\nSee the [AES Encryption Guide](/guides/aes-encryption) for encryption instructions.",
+        "security": [{ "apiKeyAuth": [] }],
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "application/json"
+            },
+            "description": "Must be `application/json`"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["body"],
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "description": "AES-256-CBC encrypted payload (HEX encoded). Encrypt a JSON object containing `user_id`.",
+                    "example": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
+                  }
+                }
+              },
+              "example": {
+                "body": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Service details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "user_id": { "type": "string", "example": "USR20260001" },
+                    "products": {
+                      "type": "array",
+                      "description": "All products available to the user.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "product_id": { "type": "string" },
+                          "product_name": { "type": "string" },
+                          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] }
+                        }
+                      }
+                    },
+                    "services": {
+                      "type": "array",
+                      "description": "All services under each product.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "service_id": { "type": "string" },
+                          "service_name": { "type": "string" },
+                          "product_id": { "type": "string" },
+                          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] }
+                        }
+                      }
+                    },
+                    "providers": {
+                      "type": "array",
+                      "description": "Service providers linked to the user.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "provider_id": { "type": "string" },
+                          "provider_name": { "type": "string" },
+                          "service_id": { "type": "string" },
+                          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] }
+                        }
+                      }
+                    },
+                    "debit_accounts": {
+                      "type": "array",
+                      "description": "User's debit account details.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "account_id": { "type": "string", "example": "UNPW4065468842" },
+                          "account_type": { "type": "string", "example": "WALLET" },
+                          "balance": { "type": "number", "example": 10000.00 },
+                          "currency": { "type": "string", "example": "INR" },
+                          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] }
+                        }
+                      }
+                    },
+                    "credit_accounts": {
+                      "type": "array",
+                      "description": "User's credit account details.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "account_id": { "type": "string" },
+                          "account_type": { "type": "string" },
+                          "bank_name": { "type": "string" },
+                          "account_number": { "type": "string" },
+                          "ifsc_code": { "type": "string" },
+                          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad request — missing or invalid body" },
+          "401": { "description": "Unauthorized — invalid x-api-key" },
+          "422": { "description": "Unprocessable — decryption failure or invalid payload" }
+        }
+      }
     }
   },
   "components": {

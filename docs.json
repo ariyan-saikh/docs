@@ -19,8 +19,7 @@
             "pages": [
               "index",
               "quickstart",
-              "how-unpay-works",
-              "core-concepts"
+              "how-unpay-works"
             ]
           },
           {
@@ -103,9 +102,15 @@
           {
             "group": "Payouts",
             "pages": [
-              "api-reference/endpoint/payouts-pay",
-              "api-reference/endpoint/payouts-status",
-              "api-reference/endpoint/payouts-fetch-balance"
+              "api-reference/endpoint/payouts/pay",
+              "api-reference/endpoint/payouts/status",
+              "api-reference/endpoint/payouts/fetch-balance"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api-reference/endpoint/services/get"
             ]
           }
         ]
@@ -133,12 +138,12 @@
     "options": [
       "copy",
       "view",
+      "vscode",
       "chatgpt",
       "claude",
       "perplexity",
       "mcp",
-      "cursor",
-      "vscode"
+      "cursor"
     ]
   },
   "footer": {
