@@ -1,3 +1,30 @@
 ---
 title: "Authentication"
+description: "All UnPay API endpoints use API Key authentication via the x-api-key header."
 ---
+
+UnPay uses **API Key** authentication for all tech/server-to-server endpoints.
+
+## API Key
+
+Generated from **Settings → API Security** in the [UnPay Dashboard](https://app.unpay.in).
+
+```http
+x-api-key: <your_api_key>
+```
+
+Pass the key in every request header. There are no session tokens or expiry — rotate your key manually from the dashboard when needed.
+
+<Warning>
+  Keep your API key private. Never expose it in client-side code, browser requests, or public repositories.
+</Warning>
+
+---
+
+## Encryption requirement
+
+All payout endpoints require the request payload to be **AES-256-CBC encrypted** before sending. The encrypted output must be HEX-encoded and passed as the `body` field.
+
+<Card title="AES-256-CBC Encryption Guide" icon="lock" href="/guides/aes-encryption">
+  Step-by-step guide with code examples in Node.js, Python, and PHP.
+</Card>

@@ -58,6 +58,12 @@
             "pages": [
               "guides/about-platform"
             ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "guides/aes-encryption"
+            ]
           }
         ]
       },
@@ -97,8 +103,7 @@
           {
             "group": "Payouts",
             "pages": [
-              "api-reference/endpoint/payouts-pay",
-              "api-reference/endpoint/payouts-status"
+              "api-reference/endpoint/payouts-pay"
             ]
           }
         ]

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "UnPay API",
-    "description": "API-First Financial Infrastructure for UPI Collect, Connected Banking, and Lending OS.",
+    "description": "API-First Financial Infrastructure for UPI Collect, Connected Banking, Lending OS, and Payouts.",
     "license": {
       "name": "MIT"
     },
@@ -10,18 +10,21 @@
   },
   "servers": [
     {
-      "url": "https://api.unpay.in"
+      "url": "https://app.unpay.in/api",
+      "description": "Production"
     }
   ],
   "security": [
     {
-      "bearerAuth": []
+      "apiKeyAuth": []
     }
   ],
   "paths": {
     "/v1/upi/collect": {
       "post": {
-        "tags": ["UPI Collect"],
+        "tags": [
+          "UPI Collect"
+        ],
         "summary": "Create Collection Request",
         "description": "Initiate a UPI collection request (Intent, QR, or Collect).",
         "requestBody": {
@@ -31,45 +34,73 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "amount": { "type": "number" },
-                  "currency": { "type": "string", "default": "INR" },
-                  "vpa": { "type": "string" },
-                  "expiry": { "type": "integer" }
+                  "amount": {
+                    "type": "number"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "default": "INR"
+                  },
+                  "vpa": {
+                    "type": "string"
+                  },
+                  "expiry": {
+                    "type": "integer"
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": { "description": "Request created successfully" }
+          "200": {
+            "description": "Request created successfully"
+          }
         }
       }
     },
     "/v1/upi/collect/{id}": {
       "get": {
-        "tags": ["UPI Collect"],
+        "tags": [
+          "UPI Collect"
+        ],
         "summary": "Get Transaction Status",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Transaction details" }
+          "200": {
+            "description": "Transaction details"
+          }
         }
       }
     },
     "/v1/banking/accounts": {
       "get": {
-        "tags": ["Connected Banking"],
+        "tags": [
+          "Connected Banking"
+        ],
         "summary": "List Accounts",
         "description": "Retrieve all connected banking accounts.",
         "responses": {
-          "200": { "description": "List of accounts" }
+          "200": {
+            "description": "List of accounts"
+          }
         }
       }
     },
     "/v1/banking/transfer": {
       "post": {
-        "tags": ["Connected Banking"],
+        "tags": [
+          "Connected Banking"
+        ],
         "summary": "Initiate Transfer",
         "requestBody": {
           "required": true,
@@ -78,22 +109,32 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "from_account": { "type": "string" },
-                  "to_account": { "type": "string" },
-                  "amount": { "type": "number" }
+                  "from_account": {
+                    "type": "string"
+                  },
+                  "to_account": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": { "description": "Transfer initiated" }
+          "200": {
+            "description": "Transfer initiated"
+          }
         }
       }
     },
     "/v1/lending/loan/apply": {
       "post": {
-        "tags": ["Lending OS"],
+        "tags": [
+          "Lending OS"
+        ],
         "summary": "Apply for Loan",
         "requestBody": {
           "required": true,
@@ -102,96 +143,81 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "borrower_id": { "type": "string" },
-                  "amount": { "type": "number" },
-                  "tenure": { "type": "integer" }
+                  "borrower_id": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "type": "number"
+                  },
+                  "tenure": {
+                    "type": "integer"
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": { "description": "Application submitted" }
+          "200": {
+            "description": "Application submitted"
+          }
         }
       }
     },
     "/v1/lending/loan/{id}": {
       "get": {
-        "tags": ["Lending OS"],
+        "tags": [
+          "Lending OS"
+        ],
         "summary": "Get Loan Status",
         "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Loan details" }
+          "200": {
+            "description": "Loan details"
+          }
         }
       }
     },
-    "/v1/user/product/payouts/pay": {
+    "/v1/tech/product/payouts/pay": {
       "post": {
-        "tags": ["Payouts"],
-        "summary": "Initiate Payout",
-        "description": "Initiate a payout to a registered beneficiary using IMPS, NEFT, or RTGS. Requires OTP verification.",
+        "tags": [
+          "Payouts — Tech API"
+        ],
+        "summary": "Initiate Payout (Tech / Server-to-Server)",
+        "description": "Server-to-server payout endpoint for technical integrations. No OTP required. Authenticate using your **x-api-key** from the UnPay dashboard.\n\nAll payout fields must be **AES-256-CBC encrypted** using your AES Key and IV, and the output encoded as a **HEX string**, then sent in the `body` field.\n\n**Option A — Use existing beneficiary (bene_id + bene_bank_id):**\n```\ndebit_account_id, bene_id, bene_bank_id, amount, payment_mode, narration, purpose, notes\n```\n\n**Option B — Inline beneficiary (no pre-registered bene needed):**\n```\ndebit_account_id, name, mobile, email, bank_id, bank_acc_num, ifsc_code, bank_owner_name, amount, payment_mode, narration, purpose, notes\n```\n\nSee the [AES Encryption Guide](/guides/aes-encryption) for step-by-step instructions and code examples.",
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["debit_account_id", "bene_id", "bene_bank_id", "amount", "payment_mode", "narration", "purpose"],
+                "required": [
+                  "body"
+                ],
                 "properties": {
-                  "debit_account_id": {
+                  "body": {
                     "type": "string",
-                    "description": "Your UnPay wallet/account ID to debit from.",
-                    "example": "UNPW4065468842"
-                  },
-                  "bene_id": {
-                    "type": "string",
-                    "description": "Registered beneficiary ID.",
-                    "example": "BENE0407717739"
-                  },
-                  "bene_bank_id": {
-                    "type": "integer",
-                    "description": "Internal bank ID of the beneficiary's bank.",
-                    "example": 86
-                  },
-                  "amount": {
-                    "type": "number",
-                    "description": "Amount to transfer (in INR).",
-                    "example": 5
-                  },
-                  "payment_mode": {
-                    "type": "string",
-                    "enum": ["IMPS", "NEFT", "RTGS"],
-                    "description": "Payment mode for the transfer.",
-                    "example": "IMPS"
-                  },
-                  "narration": {
-                    "type": "string",
-                    "description": "Transaction narration or reference note.",
-                    "example": "payout"
-                  },
-                  "purpose": {
-                    "type": "string",
-                    "description": "Purpose of the payout.",
-                    "example": "test"
-                  },
-                  "notes": {
-                    "type": "string",
-                    "description": "Additional notes for internal tracking.",
-                    "example": "test"
+                    "description": "AES-256-CBC encrypted payout payload (HEX encoded). Encrypt either Option A or Option B plaintext JSON — see description above.",
+                    "example": "GFDFGHJKLKJHGFGFFGHJKJHGFGHJKJHGFGHJKJHGFFGIUYKJHGFGHJ..."
                   }
                 }
               },
               "example": {
-                "debit_account_id": "UNPW4065468842",
-                "bene_id": "BENE0407717739",
-                "bene_bank_id": 86,
-                "amount": 5,
-                "payment_mode": "IMPS",
-                "narration": "payout",
-                "purpose": "test",
-                "notes": "test"
+                "body": "GFDFGHJKLKJHGFGFFGHJKJHGFGHJKJHGFGHJKJHGFFGIUYKJHGFGHJ..."
               }
             }
           }
@@ -204,101 +230,47 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "transaction_id": { "type": "string", "example": "TXN20260413001" },
-                    "status": { "type": "string", "example": "PENDING" },
-                    "message": { "type": "string", "example": "Payout initiated successfully" }
-                  }
-                }
-              }
-            }
-          },
-          "400": { "description": "Bad request — missing or invalid fields" },
-          "401": { "description": "Unauthorized — invalid or expired Bearer token" },
-          "422": { "description": "Unprocessable — invalid OTP or insufficient balance" }
-        }
-      }
-    },
-    "/v1/user/product/payouts/status": {
-      "post": {
-        "tags": ["Payouts"],
-        "summary": "Get Payout Status",
-        "description": "Retrieve the current status of a previously initiated payout transaction.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["debit_account_id", "transaction_id", "reference_id"],
-                "properties": {
-                  "debit_account_id": {
-                    "type": "string",
-                    "description": "Your UnPay wallet/account ID to debit from.",
-                    "example": "UNPW4065468842"
-                  },
-                  "transaction_id": {
-                    "type": "string",
-                    "description": "Registered Transaction ID.",
-                    "example": "BENE0407717739"
-                  },
-                  "reference_id": {
-                    "type": "string",
-                    "description": "Reference ID for internal tracking. or same as transaction_id",
-                    "example": "TEST87654456789"
-                  }
-                }
-              },
-              "example": {
-                "debit_account_id": "UNPW4065468842",
-                "transaction_id": "BENE0407717739",
-                "reference_id": "TEST87654456789"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Payout status retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "transaction_id": { "type": "string" },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "transaction_id": {
+                      "type": "string",
+                      "example": "TXN20260413001"
+                    },
                     "status": {
                       "type": "string",
-                      "enum": ["PENDING", "PROCESSING", "SUCCESS", "FAILED"],
-                      "example": "SUCCESS"
+                      "example": "PENDING"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Payout initiated successfully"
                     }
                   }
                 }
               }
             }
           },
-          "401": { "description": "Unauthorized" },
-          "404": { "description": "Transaction not found" }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/v1/webhooks/payment": {
-      "post": {
-        "tags": ["Webhooks"],
-        "summary": "Payment Notification",
-        "description": "Receives notifications for successful payments.",
-        "responses": {
-          "200": { "description": "Webhook received" }
+          "400": {
+            "description": "Bad request — missing or invalid body"
+          },
+          "401": {
+            "description": "Unauthorized — invalid x-api-key"
+          },
+          "422": {
+            "description": "Unprocessable — decryption failure or invalid payload"
+          }
         }
       }
     }
   },
   "components": {
     "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Use your API Key from the UnPay dashboard. Required for all tech/server-to-server endpoints."
       }
     }
   }
