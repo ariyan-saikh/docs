@@ -8,18 +8,20 @@ an API key with the `payouts:read` and `payouts:write`
 [scopes](/api-reference/scopes).
 
 <Steps>
-<Step title="Find a wallet">
-  Payouts draw from a wallet. List yours and note a `walletId`:
+<Step title="Find an account">
+  Payouts draw from an account. List yours and note its `id` (you'll pass it as
+  `walletId` when creating the payout):
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/payouts/wallets \
+  curl https://api.unpay.co/v1/payouts/accounts \
     -H "Authorization: Bearer agl_your_secret_key"
   ```
 
-  Confirm it has enough balance for the amount **plus fees and GST**:
+  Confirm it has enough `available` balance for the amount **plus fees and GST**
+  (pass the account `id`):
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/payouts/balance \
+  curl https://api.unpay.co/v1/payouts/accounts/acc_123/balance \
     -H "Authorization: Bearer agl_your_secret_key"
   ```
 </Step>
@@ -29,7 +31,7 @@ an API key with the `payouts:read` and `payouts:write`
   Generate a fresh unique key for this payout (a UUID works well).
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/payouts \
+  curl https://api.unpay.co/v1/payouts \
     -H "Authorization: Bearer agl_your_secret_key" \
     -H "Idempotency-Key: 6f9a1c2e-7b40-4c0e-9f3a-2d1e5c8b0a11" \
     -H "Content-Type: application/json" \
@@ -73,7 +75,7 @@ an API key with the `payouts:read` and `payouts:write`
   Poll the payout, or (recommended) receive a webhook.
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/payouts/pyt_... \
+  curl https://api.unpay.co/v1/payouts/pyt_... \
     -H "Authorization: Bearer agl_your_secret_key"
   ```
 
@@ -81,7 +83,7 @@ an API key with the `payouts:read` and `payouts:write`
   `failed` and `returned`. A `queued` payout can still be cancelled:
 
   ```bash
-  curl -X POST https://api.unpay.co/api/public/v1/payouts/pyt_.../cancel \
+  curl -X POST https://api.unpay.co/v1/payouts/pyt_.../cancel \
     -H "Authorization: Bearer agl_your_secret_key"
   ```
 </Step>
@@ -93,7 +95,7 @@ For batches, send up to 500 items in one call with a single batch
 idempotency key:
 
 ```bash
-curl https://api.unpay.co/api/public/v1/payouts/bulk \
+curl https://api.unpay.co/v1/payouts/bulk \
   -H "Authorization: Bearer agl_your_secret_key" \
   -H "Idempotency-Key: payroll-2026-07-09" \
   -H "Content-Type: application/json" \

@@ -10,7 +10,7 @@ info:
     name: UnPay Developer Support
     url: https://api.unpay.co
 servers:
-  - url: https://api.unpay.co/api/public/v1
+  - url: https://api.unpay.co/v1
     description: Production
 security:
   - BearerApiKey: []
@@ -18,7 +18,7 @@ security:
 tags:
   - name: Payouts
   - name: Beneficiaries
-  - name: Wallet
+  - name: Accounts
 
 components:
   securitySchemes:
@@ -155,9 +155,9 @@ components:
       properties:
         balance: { type: number }
         holdBalance: { type: number }
-        virtualBalance: { type: number }
-        totalAvailable: { type: number, description: "Computed as balance + virtualBalance." }
-    Wallet:
+        available: { type: number, description: "Canonical spendable amount." }
+        totalAvailable: { type: number, description: "Same as available (kept for compatibility)." }
+    Account:
       type: object
       properties:
         id: { type: string }
@@ -166,8 +166,7 @@ components:
         ifscCode: { type: [string, "null"] }
         balance: { type: number }
         holdBalance: { type: number }
-        virtualBalance: { type: number }
-        totalAvailable: { type: number, description: "balance + virtualBalance." }
+        totalAvailable: { type: number, description: "Spendable balance." }
         currency: { type: string }
         status: { type: string }
         connectedBanking: { type: boolean }
@@ -330,25 +329,17 @@ paths:
         "404": { description: "PAYOUT_NOT_FOUND" }
         "409": { description: "PAYOUT_NOT_CANCELLABLE" }
 
-  /payouts/balance:
+  /payouts/accounts:
     get:
-      tags: [Wallet]
-      summary: Wallet balance (default provider)
-      description: "Requires scope payouts:read."
-      responses:
-        "200": { description: Balance, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Balance' } } } } } }
-
-  /payouts/wallets:
-    get:
-      tags: [Wallet]
-      summary: List wallets
+      tags: [Accounts]
+      summary: List accounts
       description: >
-        Requires scope payouts:read. Each wallet carries balanceSource
-        ("ledger" | "bank") and connectedBanking — for "bank" wallets the ledger
-        balance is not authoritative; use /payouts/wallets/{walletId}/bank-balance.
+        Requires scope payouts:read. Each account carries balanceSource
+        ("ledger" | "bank") and connectedBanking — for "bank" accounts the ledger
+        balance is not authoritative; use /payouts/accounts/{accountId}/balance.
       responses:
         "200":
-          description: Wallets with per-mode availability and balanceSource.
+          description: Accounts with per-mode availability and balanceSource.
           content:
             application/json:
               schema:
@@ -356,27 +347,33 @@ paths:
                 properties:
                   data:
                     type: array
-                    items: { $ref: '#/components/schemas/Wallet' }
+                    items: { $ref: '#/components/schemas/Account' }
 
-  /payouts/wallets/{walletId}/bank-balance:
+  /payouts/accounts/{accountId}/balance:
     get:
-      tags: [Wallet]
-      summary: Live bank balance (Connected Banking)
+      tags: [Accounts]
+      summary: Unified balance check (any account type, no default provider)
       description: >
-        Requires scope payouts:read. Fetches the real-time balance from the
-        partner bank for a Connected Banking (Yes Bank) wallet.
+        Requires scope payouts:read. ONE endpoint for every account type. The
+        provider — and therefore the balance source — is resolved from the
+        account identified by {accountId} (tenant-scoped to the key owner), with
+        NO default-provider fallback. Internal accounts return the ledger balance
+        (balanceSource "ledger"); Connected Banking accounts return the live
+        clearBalance from the partner bank (balanceSource "bank"). The response
+        always carries a canonical `available` figure plus source-specific detail.
       parameters:
-        - { name: walletId, in: path, required: true, schema: { type: string } }
+        - { name: accountId, in: path, required: true, schema: { type: string } }
       responses:
-        "200": { description: "{ walletId, accountNumber (masked), clearBalance, balFetchTimeStamp, currency, balanceSource: bank }" }
-        "400": { description: "NOT_CONNECTED_BANKING / NO_LINKED_ACCOUNT" }
-        "404": { description: "WALLET_NOT_FOUND" }
+        "200": { description: "{ accountId, accountNumber (masked), currency, balanceSource, available, provider, ...(ledger: balance/holdBalance/totalAvailable | bank: clearBalance/balFetchTimeStamp) }" }
+        "400": { description: "ACCOUNT_ID_REQUIRED / NO_LINKED_ACCOUNT / UNSUPPORTED_RAIL" }
+        "404": { description: "ACCOUNT_NOT_FOUND" }
+        "409": { description: "PROVIDER_NOT_FOUND / PROVIDER_INACTIVE" }
         "502": { description: "Partner bank API failure (BANK_UPSTREAM_ERROR)" }
 
   /payouts/statement:
     get:
-      tags: [Wallet]
-      summary: Wallet transaction statement
+      tags: [Accounts]
+      summary: Account transaction statement
       description: "Requires scope payouts:read."
       parameters:
         - { name: dateFrom, in: query, schema: { type: string, format: date } }

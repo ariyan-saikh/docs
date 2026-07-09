@@ -14,7 +14,7 @@ info:
     name: UnPay Developer Support
     url: https://api.unpay.co
 servers:
-  - url: https://api.unpay.co/api/public/v1
+  - url: https://api.unpay.co/v1
     description: Production
 security:
   - BearerApiKey: []

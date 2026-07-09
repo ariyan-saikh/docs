@@ -1,54 +1,63 @@
 ---
 title: "Banking"
-description: "Wallets, balances, statements and Connected Banking — common questions."
+description: "Accounts, balances, statements and Connected Banking — common questions."
 ---
 
-## What is a wallet?
+## What is an account?
 
-A wallet is the funding source for payouts. It exposes a balance, per-mode
-availability (IMPS/NEFT/RTGS/UPI) and a `balanceSource`. List your wallets with
-`GET /payouts/wallets`.
+An account is the funding source for payouts. It exposes a balance, per-mode
+availability (IMPS/NEFT/RTGS/UPI) and a `balanceSource`. List your accounts with
+`GET /payouts/accounts`.
+
+## How do I check an account balance?
+
+Use the single, provider-agnostic endpoint
+`GET /payouts/accounts/{accountId}/balance` — there is **no default provider**,
+you always pass the `accountId`. It returns the ledger balance for internal
+accounts and the live bank `clearBalance` for Connected Banking accounts.
 
 ## What do the balance fields mean?
 
-From `GET /payouts/balance`:
-
 | Field | Meaning |
 |---|---|
-| `balance` | Total funds in the wallet. |
+| `available` | Canonical spendable amount — size transfers against this. |
+| `balance` | Total ledger funds (ledger accounts). |
 | `holdBalance` | Reserved for in-flight payouts. |
-| `virtualBalance` | Virtual/credit component, where applicable. |
-| `totalAvailable` | Computed as `balance + virtualBalance`. |
+| `totalAvailable` | Same as `available` (kept for compatibility). |
+| `clearBalance` | Live bank balance (Connected Banking accounts). |
+| `balanceSource` | `ledger` or `bank`. |
 
 Remember a payout also debits fee + GST, and in-flight payouts show up as
 `holdBalance` — leave headroom for both.
 
 ## What is Connected Banking?
 
-Connected Banking wallets (`balanceSource: bank`) are linked directly to a
-partner bank account (Yes Bank). For these, UnPay can read the **live** balance
-from the bank rather than a ledger figure.
+Connected Banking accounts (`balanceSource: bank`) are linked directly to a
+partner bank account (Yes Bank). For these, the balance endpoint reads the
+**live** balance from the bank rather than a ledger figure.
 
-## Why is my ledger balance "not authoritative" for a bank wallet?
+## Why is my ledger balance "not authoritative" for a bank account?
 
-For `balanceSource: bank` wallets, money can move at the bank independently of
-UnPay's ledger, so the ledger number can lag. Fetch the real-time figure with
-`GET /payouts/wallets/{walletId}/bank-balance`.
+For `balanceSource: bank` accounts, money can move at the bank independently of
+UnPay's ledger, so the ledger number can lag. The balance endpoint
+(`GET /payouts/accounts/{accountId}/balance`) handles this for you — it fetches
+the real-time `clearBalance` automatically for these accounts.
 
-## The live bank balance call returned an error
+## The balance call returned an error
 
 | Error | Meaning |
 |---|---|
-| `400 NOT_CONNECTED_BANKING` | The wallet isn't a Connected Banking wallet. |
-| `400 NO_LINKED_ACCOUNT` | No bank account is linked to the wallet. |
-| `404 WALLET_NOT_FOUND` | Unknown wallet id. |
+| `400 ACCOUNT_ID_REQUIRED` | No account id supplied. |
+| `404 ACCOUNT_NOT_FOUND` | Unknown account id (or not yours). |
+| `409 PROVIDER_NOT_FOUND` / `PROVIDER_INACTIVE` | The account's provider is missing or disabled. |
+| `400 NO_LINKED_ACCOUNT` / `UNSUPPORTED_RAIL` | Connected Banking isn't usable for this account. |
 | `502 BANK_UPSTREAM_ERROR` | The partner bank API was unavailable — retry with backoff. |
 
 ## How do I get a transaction statement?
 
 Use `GET /payouts/statement` with optional `dateFrom`, `dateTo`, `type` and
-`walletId` filters. Results are paginated (`page`, `pageSize` up to 200). See the
-[Wallets & Connected Banking](/guides/banking) guide.
+`walletId` (the account id) filters. Results are paginated (`page`, `pageSize`
+up to 200). See the [Accounts & Connected Banking](/guides/banking) guide.
 
 ## How do I reconcile payouts against my statement?
 

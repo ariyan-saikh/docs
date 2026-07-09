@@ -13,7 +13,7 @@ contacts, and reads back the call results. You'll need an API key with
   A `flow` agent runs outbound campaign calls.
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/agents \
+  curl https://api.unpay.co/v1/agents \
     -H "Authorization: Bearer agl_your_secret_key" \
     -H "Content-Type: application/json" \
     -d '{
@@ -34,7 +34,7 @@ contacts, and reads back the call results. You'll need an API key with
   schedule.
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/campaigns \
+  curl https://api.unpay.co/v1/campaigns \
     -H "Authorization: Bearer agl_your_secret_key" \
     -H "Content-Type: application/json" \
     -d '{
@@ -56,7 +56,7 @@ contacts, and reads back the call results. You'll need an API key with
   merged into the call for personalisation.
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/campaigns/cmp_.../contacts \
+  curl https://api.unpay.co/v1/campaigns/cmp_.../contacts \
     -H "Authorization: Bearer agl_your_secret_key" \
     -H "Content-Type: application/json" \
     -d '{
@@ -74,14 +74,14 @@ contacts, and reads back the call results. You'll need an API key with
   Each dial creates a call record with transcript, recording and an AI summary.
 
   ```bash
-  curl "https://api.unpay.co/api/public/v1/calls?limit=50" \
+  curl "https://api.unpay.co/v1/calls?limit=50" \
     -H "Authorization: Bearer agl_your_secret_key"
   ```
 
   Fetch one call for full detail:
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/calls/cal_... \
+  curl https://api.unpay.co/v1/calls/cal_... \
     -H "Authorization: Bearer agl_your_secret_key"
   ```
 

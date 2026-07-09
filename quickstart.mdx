@@ -21,7 +21,7 @@ This guide takes you from zero to your first successful API call.
   Call `GET /me` to confirm the key works and see the account it belongs to.
 
   ```bash
-  curl https://api.unpay.co/api/public/v1/me \
+  curl https://api.unpay.co/v1/me \
     -H "Authorization: Bearer agl_your_secret_key"
   ```
 
@@ -41,10 +41,10 @@ This guide takes you from zero to your first successful API call.
 
   <Tabs>
     <Tab title="Payouts">
-      Check your wallet balance (needs `payouts:read`):
+      List your accounts (needs `payouts:read`):
 
       ```bash
-      curl https://api.unpay.co/api/public/v1/payouts/balance \
+      curl https://api.unpay.co/v1/payouts/accounts \
         -H "Authorization: Bearer agl_your_secret_key"
       ```
 
@@ -55,7 +55,7 @@ This guide takes you from zero to your first successful API call.
       List your voice agents (needs `agents:read`):
 
       ```bash
-      curl https://api.unpay.co/api/public/v1/agents \
+      curl https://api.unpay.co/v1/agents \
         -H "Authorization: Bearer agl_your_secret_key"
       ```
 

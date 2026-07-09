@@ -5,15 +5,15 @@ description: "Common questions and failure reasons for the Payouts API."
 
 ## Which transfer modes are supported?
 
-`imps`, `neft`, `rtgs` and `upi`. The available modes depend on your wallet —
-`GET /payouts/wallets` shows per-mode availability. A disabled mode returns
+`imps`, `neft`, `rtgs` and `upi`. The available modes depend on your account —
+`GET /payouts/accounts` shows per-mode availability. A disabled mode returns
 `403 MODE_NOT_ENABLED`.
 
 ## Why does my payout fail with `INSUFFICIENT_BALANCE`?
 
-A payout debits **amount + fee + GST**. Check the available balance with
-`GET /payouts/balance` before sending, and remember fees are added on top of the
-transfer amount.
+A payout debits **amount + fee + GST**. Check `available` with
+`GET /payouts/accounts/{accountId}/balance` before sending, and remember fees are
+added on top of the transfer amount.
 
 ## Why is an `Idempotency-Key` required?
 
@@ -59,11 +59,12 @@ Up to **500** per `POST /payouts/bulk` call, under one batch idempotency key.
 Per-item failures don't abort the batch — a `207` means some items failed, so
 inspect each result. Look up a batch later with `GET /payouts/bulk/{batchId}`.
 
-## Where do I check my wallet balance?
+## Where do I check my account balance?
 
-Use `GET /payouts/balance`, and size transfers against `totalAvailable` (not
-`balance`) since fees and holds apply. Wallets, statements and Connected Banking
-live balances are covered in [Banking](/kb/banking).
+Use `GET /payouts/accounts/{accountId}/balance` (no default provider — pass the
+account id), and size transfers against `available` (not `balance`) since fees
+and holds apply. Accounts, statements and Connected Banking live balances are
+covered in [Banking](/kb/banking).
 
 ## How do I track payouts without polling?
 

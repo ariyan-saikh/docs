@@ -11,7 +11,7 @@ concepts you'll use across both.
 All requests go to:
 
 ```
-https://api.unpay.co/api/public/v1
+https://api.unpay.co/v1
 ```
 
 You authenticate with an [API key](/api-reference/authentication) that carries a
@@ -23,10 +23,10 @@ is constrained to the key owner, so one account can never see another's data.
 ## Payouts: wallets and money movement
 
 <Steps>
-  <Step title="Fund a wallet">
-    Money moves out of a **wallet**. A wallet exposes a balance, per-mode
+  <Step title="Fund an account">
+    Money moves out of an **account**. An account exposes a balance, per-mode
     availability (IMPS/NEFT/RTGS/UPI), and a `balanceSource` of either `ledger`
-    or `bank` (Connected Banking). List them with `GET /payouts/wallets`.
+    or `bank` (Connected Banking). List them with `GET /payouts/accounts`.
   </Step>
   <Step title="Send a payout">
     `POST /payouts` transfers to a bank account or UPI ID — either a manual

@@ -26,7 +26,7 @@ same key always maps to the same payout.
    (HTTP `200` with `"idempotent": true`) instead of creating a new one.
 
 ```bash
-curl https://api.unpay.co/api/public/v1/payouts \
+curl https://api.unpay.co/v1/payouts \
   -H "Authorization: Bearer agl_your_secret_key" \
   -H "Idempotency-Key: 6f9a1c2e-7b40-4c0e-9f3a-2d1e5c8b0a11" \
   -H "Content-Type: application/json" \

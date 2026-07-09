@@ -1,94 +1,99 @@
 ---
-title: "Wallets & Connected Banking"
-description: "Read wallet balances, pull statements, and fetch live bank balances via Connected Banking."
+title: "Accounts & Connected Banking"
+description: "List accounts, check a unified balance, pull statements, and read live bank balances via Connected Banking."
 ---
 
-Every payout draws from a **wallet**. This guide covers checking balances,
-understanding wallet types, pulling a statement, and reading a live bank balance
-through Connected Banking. All endpoints need an API key with the
-`payouts:read` [scope](/api-reference/scopes).
+Every payout draws from an **account**. This guide covers listing accounts,
+checking a balance, understanding account types, pulling a statement, and
+reading a live bank balance through Connected Banking. All endpoints need an API
+key with the `payouts:read` [scope](/api-reference/scopes).
 
-## List your wallets
+## List your accounts
 
 ```bash
-curl https://api.unpay.co/api/public/v1/payouts/wallets \
+curl https://api.unpay.co/v1/payouts/accounts \
   -H "Authorization: Bearer agl_your_secret_key"
 ```
 
-Each wallet reports per-mode availability (IMPS/NEFT/RTGS/UPI) and a
+Each account reports per-mode availability (IMPS/NEFT/RTGS/UPI) and a
 `balanceSource`:
 
 | `balanceSource` | Meaning |
 |---|---|
 | `ledger` | Balance is tracked in UnPay's ledger — authoritative. |
-| `bank` | A Connected Banking wallet — the ledger figure is **not** authoritative; fetch the live bank balance instead. |
+| `bank` | A Connected Banking account — the ledger figure is **not** authoritative; the balance endpoint fetches the live bank figure automatically. |
 
-## Check your balance
+Note the `id` of the account you want to work with — it's the `accountId` used
+below.
 
-For the default wallet:
+## Check an account balance
+
+There is **one** balance endpoint for every account type, with **no default
+provider** — you always pass the `accountId`:
 
 ```bash
-curl https://api.unpay.co/api/public/v1/payouts/balance \
+curl https://api.unpay.co/v1/payouts/accounts/acc_123/balance \
   -H "Authorization: Bearer agl_your_secret_key"
 ```
 
-```json
-{
-  "data": {
-    "balance": 152340.50,
-    "holdBalance": 2500.00,
-    "virtualBalance": 0,
-    "totalAvailable": 152340.50
+The provider (and therefore the balance source) is resolved from the account:
+
+- **Internal ledger account** → returns the ledger balance (`balanceSource: "ledger"`).
+
+  ```json
+  {
+    "data": {
+      "accountId": "acc_123",
+      "accountNumber": "XXXXXX6789",
+      "currency": "INR",
+      "balanceSource": "ledger",
+      "available": 152340.50,
+      "balance": 152340.50,
+      "holdBalance": 2500.00,
+      "totalAvailable": 152340.50,
+      "provider": { "id": "prv_1", "name": "unpay_wallet", "category": "wallet" }
+    }
   }
-}
-```
+  ```
 
-- **balance** — total funds in the wallet.
-- **holdBalance** — funds reserved for in-flight payouts.
-- **virtualBalance** — virtual/credit component, where applicable.
-- **totalAvailable** — computed as `balance + virtualBalance`.
+- **Connected Banking account** → returns the **live** `clearBalance` from the
+  partner bank in real time (`balanceSource: "bank"`).
 
-<Tip>
-  A payout debits **amount + fee + GST**, and in-flight payouts are shown as
-  `holdBalance`. Leave headroom for both when sizing transfers.
-</Tip>
+  ```json
+  {
+    "data": {
+      "accountId": "acc_456",
+      "accountNumber": "XXXXXX6789",
+      "currency": "INR",
+      "balanceSource": "bank",
+      "available": 875000.00,
+      "clearBalance": 875000.00,
+      "balFetchTimeStamp": "2026-07-09T10:15:00.000Z",
+      "provider": { "id": "prv_2", "name": "yes_bank", "category": "bank_account" }
+    }
+  }
+  ```
 
-## Live bank balance (Connected Banking)
+Always size transfers against `available` (the canonical spendable figure). A
+payout debits **amount + fee + GST**, and in-flight payouts are reserved as
+`holdBalance`, so leave headroom for both.
 
-For a `balanceSource: bank` wallet (Yes Bank), fetch the real-time figure
-straight from the partner bank:
-
-```bash
-curl https://api.unpay.co/api/public/v1/payouts/wallets/wal_123/bank-balance \
-  -H "Authorization: Bearer agl_your_secret_key"
-```
-
-```json
-{
-  "walletId": "wal_123",
-  "accountNumber": "XXXXXX6789",
-  "clearBalance": 875000.00,
-  "balFetchTimeStamp": "2026-07-09T10:15:00.000Z",
-  "currency": "INR",
-  "balanceSource": "bank"
-}
-```
-
-Common errors: `400 NOT_CONNECTED_BANKING` (wallet isn't a bank wallet),
-`400 NO_LINKED_ACCOUNT`, `404 WALLET_NOT_FOUND`, or `502 BANK_UPSTREAM_ERROR`
-(the partner bank API was unavailable — retry).
+Common errors: `400 ACCOUNT_ID_REQUIRED`, `404 ACCOUNT_NOT_FOUND`,
+`409 PROVIDER_NOT_FOUND` / `PROVIDER_INACTIVE`, `400 NO_LINKED_ACCOUNT` /
+`UNSUPPORTED_RAIL` (Connected Banking not usable), or `502 BANK_UPSTREAM_ERROR`
+(the partner bank API was unavailable — retry with backoff).
 
 ## Pull a statement
 
-Get a paginated ledger of wallet transactions, with optional filters:
+Get a paginated ledger of account transactions, with optional filters:
 
 ```bash
-curl "https://api.unpay.co/api/public/v1/payouts/statement?dateFrom=2026-07-01&dateTo=2026-07-09&page=1&pageSize=50" \
+curl "https://api.unpay.co/v1/payouts/statement?dateFrom=2026-07-01&dateTo=2026-07-09&page=1&pageSize=50" \
   -H "Authorization: Bearer agl_your_secret_key"
 ```
 
-Filter by `dateFrom`, `dateTo`, `type` and `walletId`. Page with `page` and
-`pageSize` (max 200).
+Filter by `dateFrom`, `dateTo`, `type` and `walletId` (the account id). Page with
+`page` and `pageSize` (max 200).
 
 <Card title="Ready to disburse?" icon="money-bill-transfer" href="/guides/first-payout">
   Once you've confirmed available balance, send your first payout.
