@@ -63,9 +63,9 @@ components:
     Mode: { type: string, enum: [imps, neft, rtgs, upi] }
     PayoutCreate:
       type: object
-      required: [walletId, amount, mode]
+      required: [accountId, amount, mode]
       properties:
-        walletId: { type: string }
+        accountId: { type: string }
         amount: { $ref: '#/components/schemas/Money' }
         mode: { $ref: '#/components/schemas/Mode' }
         payoutAccountId:
@@ -107,7 +107,7 @@ components:
       properties:
         id: { type: string }
         referenceId: { type: string }
-        walletId: { type: string }
+        accountId: { type: string }
         payoutAccountId: { type: [string, "null"] }
         amount: { $ref: '#/components/schemas/Money' }
         fee: { $ref: '#/components/schemas/Money' }
@@ -189,7 +189,7 @@ components:
       type: object
       properties:
         id: { type: string }
-        walletId: { type: string }
+        accountId: { type: string }
         type: { type: string }
         amount: { type: string }
         balanceBefore: { type: string }
@@ -287,9 +287,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [walletId, items]
+              required: [accountId, items]
               properties:
-                walletId: { type: string }
+                accountId: { type: string }
                 items:
                   type: array
                   minItems: 1
@@ -379,7 +379,7 @@ paths:
         - { name: dateFrom, in: query, schema: { type: string, format: date } }
         - { name: dateTo, in: query, schema: { type: string, format: date } }
         - { name: type, in: query, schema: { type: string } }
-        - { name: walletId, in: query, schema: { type: string } }
+        - { name: accountId, in: query, schema: { type: string } }
         - { name: page, in: query, schema: { type: integer, default: 1 } }
         - { name: pageSize, in: query, schema: { type: integer, maximum: 200, default: 50 } }
       responses:

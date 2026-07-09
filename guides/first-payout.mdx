@@ -10,7 +10,7 @@ an API key with the `payouts:read` and `payouts:write`
 <Steps>
 <Step title="Find an account">
   Payouts draw from an account. List yours and note its `id` (you'll pass it as
-  `walletId` when creating the payout):
+  `accountId` when creating the payout):
 
   ```bash
   curl https://api.unpay.co/v1/payouts/accounts \
@@ -36,7 +36,7 @@ an API key with the `payouts:read` and `payouts:write`
     -H "Idempotency-Key: 6f9a1c2e-7b40-4c0e-9f3a-2d1e5c8b0a11" \
     -H "Content-Type: application/json" \
     -d '{
-      "walletId": "wal_123",
+      "accountId": "acc_123",
       "amount": 2500.00,
       "mode": "imps",
       "accountType": "bank_account",
@@ -100,7 +100,7 @@ curl https://api.unpay.co/v1/payouts/bulk \
   -H "Idempotency-Key: payroll-2026-07-09" \
   -H "Content-Type: application/json" \
   -d '{
-    "walletId": "wal_123",
+    "accountId": "acc_123",
     "items": [
       { "amount": 2500, "mode": "imps", "accountType": "bank_account", "accountName": "Rahul Sharma", "accountNumber": "50100123456789", "ifscCode": "HDFC0000123", "reference": "emp-001" },
       { "amount": 1800, "mode": "upi", "accountType": "upi", "accountName": "Priya Nair", "upiId": "priya@okaxis", "reference": "emp-002" }
