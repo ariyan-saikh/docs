@@ -1,0 +1,53 @@
+---
+title: "Knowledge Base"
+description: "Answers to common questions about the UnPay API — accounts, keys, payouts, AI calling and webhooks."
+---
+
+Short, practical answers to the questions we get most often. If you can't find
+what you need, reach out via [Support](https://www.unpay.co/contact).
+
+## Browse by topic
+
+<CardGroup cols={2}>
+  <Card title="Accounts & API keys" icon="key" href="/kb/api-keys">
+    Creating, scoping, rotating and securing keys — and fixing `401` / `403`.
+  </Card>
+  <Card title="Payments" icon="money-bill-transfer" href="/kb/payouts">
+    Modes, fees, statuses, idempotency, and why a payout might fail.
+  </Card>
+  <Card title="Banking" icon="building-columns" href="/kb/banking">
+    Wallets, balances, statements and Connected Banking.
+  </Card>
+  <Card title="AI Calling" icon="phone-volume" href="/kb/ai-calling">
+    Agents, campaigns, contacts, credits and call outcomes.
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/kb/webhooks">
+    Deliveries, signature verification, retries and de-duplication.
+  </Card>
+</CardGroup>
+
+## Top questions
+
+<AccordionGroup>
+  <Accordion title="What is the API base URL?">
+    All requests go to `https://api.unpay.co/api/public/v1`. See the
+    [API overview](/api-reference/overview).
+  </Accordion>
+  <Accordion title="How do I authenticate?">
+    Send your secret key as `Authorization: Bearer agl_…` or in the `x-api-key`
+    header. See [Authentication](/api-reference/authentication).
+  </Accordion>
+  <Accordion title="I lost my API key — can I recover it?">
+    No. Secret keys are stored only as a hash and shown once at creation. Create
+    a new key (or rotate the existing one) in **Developers → API Keys**.
+  </Accordion>
+  <Accordion title="How do I stop duplicate payouts?">
+    Always send an `Idempotency-Key`. A retry with the same key returns the
+    original payout instead of creating a new one. See
+    [Idempotency](/api-reference/idempotency).
+  </Accordion>
+  <Accordion title="How do I get real-time updates?">
+    Subscribe to [webhooks](/guides/verify-webhooks) for payout, call and
+    campaign events instead of polling.
+  </Accordion>
+</AccordionGroup>

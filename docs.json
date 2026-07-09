@@ -11,107 +11,116 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Home",
-        "icon": "house-blank",
+        "tab": "Get started",
+        "icon": "rocket",
         "groups": [
           {
             "group": "Overview",
             "pages": [
               "index",
               "quickstart",
-              "how-unpay-works"
-            ]
-          },
-          {
-            "group": "Products",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Platform",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "Developer",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Guides",
-        "icon": "book-blank",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
+              "how-unpay-works",
               "guides/about-platform"
             ]
           },
           {
-            "group": "Security",
+            "group": "Accounts & security",
             "pages": [
-              "guides/aes-encryption"
+              "kb/api-keys"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "guides/verify-webhooks",
+              "kb/webhooks"
+            ]
+          },
+          {
+            "group": "Help center",
+            "pages": [
+              "kb/index"
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "Payments",
+        "icon": "money-bill-transfer",
+        "groups": [
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/first-payout"
+            ]
+          },
+          {
+            "group": "Knowledge Base",
+            "pages": [
+              "kb/payouts"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Banking",
+        "icon": "building-columns",
+        "groups": [
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/banking"
+            ]
+          },
+          {
+            "group": "Knowledge Base",
+            "pages": [
+              "kb/banking"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Artificial Intelligence",
+        "icon": "robot",
+        "groups": [
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/first-campaign"
+            ]
+          },
+          {
+            "group": "Knowledge Base",
+            "pages": [
+              "kb/ai-calling"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
         "icon": "code",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Getting started",
             "pages": [
               "api-reference/overview",
               "api-reference/authentication",
-              "api-reference/error-and-codes"
+              "api-reference/scopes",
+              "api-reference/idempotency",
+              "api-reference/rate-limits",
+              "api-reference/request-signing",
+              "api-reference/errors"
             ]
           },
           {
-            "group": "UPI Collect",
-            "pages": [
-              "api-reference/endpoint/upi-collect-request",
-              "api-reference/endpoint/upi-collect-status"
-            ]
+            "group": "Payouts API",
+            "openapi": "api-reference/openapi/payouts.yaml"
           },
           {
-            "group": "Connected Banking",
-            "pages": [
-              "api-reference/endpoint/banking-accounts",
-              "api-reference/endpoint/banking-transfer"
-            ]
-          },
-          {
-            "group": "Lending OS",
-            "pages": [
-              "api-reference/endpoint/lending-loan-apply",
-              "api-reference/endpoint/lending-loan-status"
-            ]
-          },
-          {
-            "group": "Payouts",
-            "pages": [
-              "api-reference/endpoint/payouts/pay",
-              "api-reference/endpoint/payouts/status",
-              "api-reference/endpoint/payouts/fetch-balance"
-            ]
-          },
-          {
-            "group": "Services",
-            "pages": [
-              "api-reference/endpoint/services/get"
-            ]
+            "group": "AI Calling API",
+            "openapi": "api-reference/openapi/ai-calling.yaml"
           }
         ]
       }
@@ -124,13 +133,13 @@
   "navbar": {
     "links": [
       {
-        "label": "Contact Us",
+        "label": "Support",
         "href": "https://www.unpay.co/contact"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Login",
+      "label": "Sign in",
       "href": "https://app.unpay.in/signin"
     }
   },

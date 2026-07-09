@@ -1,48 +1,75 @@
 ---
 title: "Authentication"
-description: "All UnPay API endpoints use API Key authentication via the x-api-key header."
+description: "Authenticate every request with an UnPay API key."
 ---
 
-UnPay uses **API Key** authentication for all tech/server-to-server endpoints.
+The UnPay Public API uses **API key** authentication. Every request must present
+a valid secret key, either as a bearer token or in the `x-api-key` header.
 
-## API Key
+## API keys
 
-Generated from **Settings → API Security** in the [UnPay Dashboard](https://app.unpay.in).
+Keys are created in the [UnPay Dashboard](https://app.unpay.in) under
+**Developers → API Keys**. A key looks like:
 
-```http
-x-api-key: <your_api_key>
+```
+agl_1a2b3c4d5e6f7g8h9i0j...
 ```
 
-Pass the key in every request header. There are no session tokens or expiry — rotate your key manually from the dashboard when needed.
+The full secret is displayed **once** at creation and stored only as a bcrypt
+hash — UnPay can never show it again. If you lose it, rotate the key.
 
-<Warning>
-  Keep your API key private. Never expose it in client-side code, browser requests, or public repositories.
-</Warning>
+Each key carries:
 
----
+- a set of [**scopes**](/api-reference/scopes) (per-resource read/write),
+- a [**rate limit**](/api-reference/rate-limits) (requests per minute),
+- an optional **IP allowlist**,
+- an optional [**signed-requests**](/api-reference/request-signing) requirement.
 
-## API Security & Encryption
+## Sending the key
 
-In addition to API Key authentication, all Payout and Service endpoints require **end-to-end payload encryption**. This protects sensitive financial data in transit.
+Use either header. Bearer is recommended.
 
-To make an API call, you must:
-1. Serialize your request payload to a JSON string.
-2. Encrypt it using **AES-256-CBC** with your dashboard-issued **AES Key** and **AES IV**.
-3. Encode the output as a **HEX string**.
-4. Pass the HEX string in the `body` field.
+<CodeGroup>
+```bash Authorization header
+curl https://api.unpay.co/api/public/v1/me \
+  -H "Authorization: Bearer agl_your_secret_key"
+```
 
-### AES Key & IV
+```bash x-api-key header
+curl https://api.unpay.co/api/public/v1/me \
+  -H "x-api-key: agl_your_secret_key"
+```
+</CodeGroup>
 
-Both keys are generated from the [UnPay Dashboard](https://app.unpay.in) under **Settings → API Security**:
-- **AES Key** — Secret encryption key
-- **AES IV** — Initialization vector
+A successful call to `GET /me` confirms the key works and returns the owning
+account:
 
 ```json
 {
-  "body": "UNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAYUNPAY"
+  "id": "usr_...",
+  "email": "you@company.com",
+  "name": "Acme Payments",
+  "credits": 12500,
+  "planType": "growth"
 }
 ```
 
-<Card title="AES-256-CBC Encryption Guide" icon="lock" href="/guides/aes-encryption">
-  Learn how to encrypt payloads with step-by-step code examples in Node.js, Python, and PHP.
-</Card>
+## Failure responses
+
+| Status | Meaning |
+|---|---|
+| `401` | Missing, malformed, or invalid key (`Missing API key…` / `Invalid API key.`). |
+| `403` | Disabled or expired key, missing scope, IP not allowlisted, or a non-HTTPS request. |
+| `429` | Rate limit exceeded for the key. |
+
+```json
+{
+  "error": "Missing API key. Provide it via 'Authorization: Bearer agl_...' or the 'x-api-key' header."
+}
+```
+
+<Warning>
+  Treat keys like passwords. Store them in a secrets manager, scope them
+  narrowly, use separate keys per integration, and rotate on suspected
+  exposure. Repeated invalid-key attempts from an IP are throttled.
+</Warning>

@@ -1,0 +1,65 @@
+---
+title: "Accounts & API keys"
+description: "Create, scope, secure and troubleshoot UnPay API keys."
+---
+
+## Where do I create an API key?
+
+In the [UnPay Dashboard](https://app.unpay.in) under **Developers → API Keys**.
+Give the key a name, grant the [scopes](/api-reference/scopes) it needs, and copy
+the secret.
+
+## Why is my key only shown once?
+
+Secret keys (`agl_…`) are stored only as a **bcrypt hash** — UnPay can never
+display the full secret again. Save it in your secrets manager at creation time.
+If it's lost or exposed, rotate the key.
+
+## What scopes should I grant?
+
+Grant the **minimum** an integration needs. Read and write are independent — a
+key with only `payouts:read` can check balances and list payouts but cannot move
+money. See the full list in [Scopes](/api-reference/scopes).
+
+## Troubleshooting `401 Unauthorized`
+
+A `401` means the key wasn't accepted. Common causes:
+
+- The header is missing or malformed — use `Authorization: Bearer agl_…` or
+  `x-api-key: agl_…`.
+- The key is inactive or expired.
+- You're using a key from a different environment/account.
+- The key requires [signed requests](/api-reference/request-signing) and the
+  signature headers are missing or invalid.
+
+<Warning>
+  Repeated invalid-key attempts from one IP are throttled as brute-force
+  protection. Fix the credential rather than retrying in a loop.
+</Warning>
+
+## Troubleshooting `403 Forbidden`
+
+The key is valid but not allowed to do this:
+
+- **Missing scope** — e.g. `{ "error": "This API key is missing the required scope: payouts:write" }`. Add the scope in the dashboard.
+- **IP not allowlisted** — if the key has an IP allowlist, requests from other IPs are rejected.
+- **Plan or mode restriction** — the feature isn't enabled for your plan/wallet.
+
+## How do I rotate a key?
+
+Create a new key, deploy it, then deactivate the old one. Using two keys briefly
+lets you roll over with zero downtime. Rotate immediately on any suspected
+exposure.
+
+## How do I lock a key to specific IPs?
+
+Add one or more IPs/CIDRs to the key's **IP allowlist** in the dashboard. An
+empty allowlist means "allow all". Use this for server-to-server integrations
+with stable egress IPs.
+
+## When should I enable signed requests?
+
+For high-value integrations (especially payouts), enable **Require signed
+requests** on the key. Every call must then carry an HMAC signature over its
+body, blocking tampering and replays. See
+[Request signing](/api-reference/request-signing).

@@ -1,0 +1,127 @@
+---
+title: "Verifying webhooks"
+description: "Receive UnPay events securely — verify the signature and reject replays."
+---
+
+Webhooks push events to your server in real time instead of you polling. Every
+delivery is **signed** so you can prove it came from UnPay and wasn't tampered
+with or replayed.
+
+## Subscribe
+
+Create a subscription with an API key holding the `webhooks:write`
+[scope](/api-reference/scopes). The response returns a **signing secret exactly
+once** — store it; it can't be retrieved again.
+
+```bash
+curl https://api.unpay.co/api/public/v1/webhooks \
+  -H "Authorization: Bearer agl_your_secret_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Prod events",
+    "url": "https://api.yourapp.com/webhooks/unpay",
+    "events": ["payout.completed", "payout.failed", "call.completed", "campaign.completed"]
+  }'
+```
+
+```json
+{
+  "id": "whk_...",
+  "name": "Prod events",
+  "url": "https://api.yourapp.com/webhooks/unpay",
+  "events": ["payout.completed", "payout.failed", "call.completed", "campaign.completed"],
+  "isActive": true,
+  "secret": "whsec_9f3a2d1e5c8b..."
+}
+```
+
+## Available events
+
+| Domain | Events |
+|---|---|
+| Payouts | `payout.initiated`, `payout.processing`, `payout.completed`, `payout.failed`, `payout.reversed` |
+| Calls | `call.started`, `call.ringing`, `call.answered`, `call.completed`, `call.failed`, `call.no_answer`, `call.busy`, `call.voicemail`, `call.transferred` |
+| Campaigns | `campaign.started`, `campaign.paused`, `campaign.resumed`, `campaign.completed`, `campaign.failed`, `campaign.cancelled` |
+| Other | `contact.uploaded`, `agent.error`, `webhook.test` |
+
+## Delivery headers
+
+Each POST to your endpoint carries:
+
+| Header | Purpose |
+|---|---|
+| `X-Webhook-Delivery` | Stable delivery id (constant across retries) — use it to de-duplicate. |
+| `X-Webhook-Timestamp` | Unix seconds when the event was signed. |
+| `X-Webhook-Event` | The event name (the first of the delivery's events). |
+| `X-Webhook-Signature-V2` | `t=<ts>,v1=<hmac>` — **verify this one.** |
+| `X-Webhook-Signature` | Legacy `sha256` HMAC over the raw body (kept for back-compat). |
+
+## Verify the signature (V2)
+
+Compute `HMAC_SHA256(secret, "<timestamp>.<rawBody>")` and compare, in constant
+time, against the `v1=` value. Reject deliveries whose timestamp is too old to
+block replays.
+
+```javascript Node.js (Express)
+import crypto from "crypto";
+import express from "express";
+
+const app = express();
+const SECRET = process.env.UNPAY_WEBHOOK_SECRET; // whsec_...
+
+// Capture the raw body — you must HMAC the exact bytes received.
+app.use("/webhooks/unpay", express.raw({ type: "application/json" }));
+
+app.post("/webhooks/unpay", (req, res) => {
+  const header = req.get("X-Webhook-Signature-V2") || "";
+  const parts = Object.fromEntries(header.split(",").map((kv) => kv.split("=")));
+  const ts = parts.t;
+  const provided = parts.v1;
+  const rawBody = req.body.toString("utf8");
+
+  // 1) Reject stale deliveries (5-minute window) to prevent replay.
+  if (!ts || Math.abs(Date.now() / 1000 - Number(ts)) > 300) {
+    return res.status(400).send("stale or missing timestamp");
+  }
+
+  // 2) Recompute and compare in constant time.
+  const expected = crypto
+    .createHmac("sha256", SECRET)
+    .update(`${ts}.${rawBody}`)
+    .digest("hex");
+
+  const a = Buffer.from(expected);
+  const b = Buffer.from(provided || "");
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    return res.status(401).send("bad signature");
+  }
+
+  // 3) De-duplicate on X-Webhook-Delivery, then handle the event.
+  const event = JSON.parse(rawBody);
+  // ... process event.event / event.data ...
+
+  res.status(200).send("ok"); // Always ack with 2xx once verified.
+});
+```
+
+## Handling rules
+
+<Steps>
+  <Step title="Return 2xx fast">
+    Acknowledge with any `2xx` as soon as you've verified and enqueued the
+    event. Do slow work asynchronously — UnPay retries non-2xx deliveries.
+  </Step>
+  <Step title="De-duplicate">
+    The same event may arrive more than once. Treat `X-Webhook-Delivery` as an
+    idempotency key and ignore ids you've already processed.
+  </Step>
+  <Step title="Verify before trusting">
+    Never act on a payload until the signature check passes and the timestamp is
+    fresh.
+  </Step>
+</Steps>
+
+<Warning>
+  Keep the signing secret server-side. If it leaks, delete the webhook and
+  create a new one to rotate the secret.
+</Warning>

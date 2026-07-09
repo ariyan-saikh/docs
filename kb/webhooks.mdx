@@ -1,0 +1,62 @@
+---
+title: "Webhooks"
+description: "Troubleshooting deliveries, signatures, retries and de-duplication."
+---
+
+## I'm not receiving deliveries — what should I check?
+
+- The subscription is **active** and its `events` list includes the event you
+  expect.
+- Your endpoint is **publicly reachable over HTTPS**.
+- You return a **`2xx`** quickly — non-2xx responses are treated as failures and
+  retried.
+- If you scoped the webhook with `campaignIds`, the event belongs to one of
+  those campaigns.
+
+## How do I verify a delivery is genuine?
+
+Verify the `X-Webhook-Signature-V2` header. It has the form
+`t=TIMESTAMP,v1=HMAC`, where the HMAC is `HMAC_SHA256(secret, "TIMESTAMP.BODY")`
+over the **raw** request body. Compare in constant time and reject stale
+timestamps. Full walkthrough with code:
+[Verifying webhooks](/guides/verify-webhooks).
+
+## My signature check keeps failing
+
+Almost always one of these:
+
+- You hashed a **re-serialized** body instead of the exact raw bytes received.
+  HMAC the raw payload before any JSON parse/re-stringify.
+- You used the wrong secret. The signing secret is returned **once** when you
+  create the webhook — if you don't have it, recreate the webhook.
+- You compared against `X-Webhook-Signature` (legacy) using the V2 formula, or
+  vice-versa. Prefer **V2**.
+
+## How do I stop processing the same event twice?
+
+Deliveries can repeat (e.g. after a retry). Treat `X-Webhook-Delivery` as an
+idempotency key and skip ids you've already handled.
+
+## What's the timestamp window for?
+
+To block replays. Reject any delivery whose `X-Webhook-Timestamp` is more than a
+few minutes (300s) from your server time, even if the HMAC matches.
+
+## Are failed deliveries retried?
+
+Yes — deliveries that don't return `2xx` are retried up to **3 attempts** on a
+fixed schedule: immediately, then after **1 minute**, then after **5 minutes**.
+Each attempt reuses the same `X-Webhook-Delivery` id, so make your handler
+idempotent and return `2xx` as soon as you've verified and enqueued the event;
+do slow work asynchronously.
+
+## How do I rotate a webhook's signing secret?
+
+The secret is immutable for a subscription. To rotate, create a new webhook
+(capturing the new secret) and delete the old one.
+
+## Which events can I subscribe to?
+
+Payouts, calls and campaigns — the full list is in the
+[Verifying webhooks](/guides/verify-webhooks) guide and the
+[AI Calling API](/api-reference/webhooks/create-a-webhook) reference.

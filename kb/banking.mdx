@@ -1,0 +1,58 @@
+---
+title: "Banking"
+description: "Wallets, balances, statements and Connected Banking — common questions."
+---
+
+## What is a wallet?
+
+A wallet is the funding source for payouts. It exposes a balance, per-mode
+availability (IMPS/NEFT/RTGS/UPI) and a `balanceSource`. List your wallets with
+`GET /payouts/wallets`.
+
+## What do the balance fields mean?
+
+From `GET /payouts/balance`:
+
+| Field | Meaning |
+|---|---|
+| `balance` | Total funds in the wallet. |
+| `holdBalance` | Reserved for in-flight payouts. |
+| `virtualBalance` | Virtual/credit component, where applicable. |
+| `totalAvailable` | Computed as `balance + virtualBalance`. |
+
+Remember a payout also debits fee + GST, and in-flight payouts show up as
+`holdBalance` — leave headroom for both.
+
+## What is Connected Banking?
+
+Connected Banking wallets (`balanceSource: bank`) are linked directly to a
+partner bank account (Yes Bank). For these, UnPay can read the **live** balance
+from the bank rather than a ledger figure.
+
+## Why is my ledger balance "not authoritative" for a bank wallet?
+
+For `balanceSource: bank` wallets, money can move at the bank independently of
+UnPay's ledger, so the ledger number can lag. Fetch the real-time figure with
+`GET /payouts/wallets/{walletId}/bank-balance`.
+
+## The live bank balance call returned an error
+
+| Error | Meaning |
+|---|---|
+| `400 NOT_CONNECTED_BANKING` | The wallet isn't a Connected Banking wallet. |
+| `400 NO_LINKED_ACCOUNT` | No bank account is linked to the wallet. |
+| `404 WALLET_NOT_FOUND` | Unknown wallet id. |
+| `502 BANK_UPSTREAM_ERROR` | The partner bank API was unavailable — retry with backoff. |
+
+## How do I get a transaction statement?
+
+Use `GET /payouts/statement` with optional `dateFrom`, `dateTo`, `type` and
+`walletId` filters. Results are paginated (`page`, `pageSize` up to 200). See the
+[Wallets & Connected Banking](/guides/banking) guide.
+
+## How do I reconcile payouts against my statement?
+
+Each payout carries a `referenceId` and (once processed) a
+`providerTransactionId`. Match those against statement entries, and use
+[webhooks](/guides/verify-webhooks) (`payout.completed` / `payout.reversed`) to
+keep your ledger in sync in real time.

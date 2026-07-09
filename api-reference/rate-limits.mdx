@@ -1,0 +1,47 @@
+---
+title: "Rate Limits"
+description: "Per-key request budgets and how to handle throttling."
+---
+
+Each API key has its own rate limit, enforced across the whole cluster (not
+per-server), so the budget you configure is the budget you get.
+
+- **Default:** 100 requests per minute per key.
+- **Window:** rolling 60 seconds.
+- Both are configurable per key in **Developers → API Keys**.
+
+Every response carries the current budget in headers:
+
+| Header | Meaning |
+|---|---|
+| `X-RateLimit-Limit` | The key's requests-per-window limit. |
+| `X-RateLimit-Remaining` | Requests left in the current window. |
+
+When a key exceeds its budget, requests return `429` with a `retryAfterSeconds`
+hint:
+
+```json
+{ "error": "Rate limit exceeded for this API key.", "retryAfterSeconds": 42 }
+```
+
+## Handling 429s
+
+<Steps>
+  <Step title="Back off">
+    Pause and retry after a short delay. Use exponential backoff with jitter
+    (e.g. 1s, 2s, 4s…) rather than retrying immediately in a tight loop.
+  </Step>
+  <Step title="Spread load">
+    Batch where the API supports it — for example, use `POST /payouts/bulk`
+    (up to 500 payouts in one call) instead of 500 individual requests.
+  </Step>
+  <Step title="Separate keys">
+    Give high-volume and interactive workloads their own keys so one burst can't
+    starve the other.
+  </Step>
+</Steps>
+
+<Note>
+  Repeated authentication failures (invalid keys) from a single IP are throttled
+  separately as brute-force protection, independent of a key's request budget.
+</Note>

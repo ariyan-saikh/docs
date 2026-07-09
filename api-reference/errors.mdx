@@ -1,0 +1,73 @@
+---
+title: "Errors"
+description: "HTTP status codes and machine-readable error codes returned by the UnPay API."
+---
+
+The UnPay API uses conventional HTTP status codes. Errors return a JSON body
+with a human `error` message and, where useful, a machine-readable `code`:
+
+```json
+{ "error": "Insufficient wallet balance for this payout.", "code": "INSUFFICIENT_BALANCE" }
+```
+
+Validation failures also include a `details` array pinpointing each field:
+
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    { "path": "amount", "message": "Number must be greater than 0" },
+    { "path": "ifscCode", "message": "Invalid" }
+  ]
+}
+```
+
+## Status codes
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Success. Also returned for an idempotent payout replay. |
+| `201 Created` | Resource created (agent, campaign, contact, beneficiary, webhook). |
+| `202 Accepted` | Payout accepted and queued/processing. |
+| `207 Multi-Status` | Bulk payout partially succeeded — inspect per-item results. |
+| `400 Bad Request` | Validation failed or a required field/header is missing. |
+| `401 Unauthorized` | Missing/invalid API key, or a failed request signature. |
+| `402 Payment Required` | Insufficient balance or inactive wallet. |
+| `403 Forbidden` | Missing scope, plan restriction, disabled mode, or IP not allowlisted. |
+| `404 Not Found` | Resource doesn't exist or isn't owned by your account. |
+| `409 Conflict` | Duplicate or non-cancellable state (e.g. `DUPLICATE_PAYOUT`). |
+| `429 Too Many Requests` | Rate limit exceeded. |
+| `5xx` | Server error — retry idempotent/read requests with backoff. |
+| `502 Bad Gateway` | Upstream partner (e.g. bank) failure. |
+
+## Common error codes
+
+### Payouts
+
+| `code` | Status | Meaning |
+|---|---|---|
+| `IDEMPOTENCY_KEY_REQUIRED` | 400 | No `Idempotency-Key` header or `idempotencyKey` field. |
+| `INSUFFICIENT_BALANCE` | 402 | Wallet balance can't cover amount + fees. |
+| `WALLET_INACTIVE` | 402 | The wallet is not active. |
+| `MODE_NOT_ENABLED` | 403 | The transfer mode (IMPS/NEFT/RTGS/UPI) isn't enabled for the wallet. |
+| `DUPLICATE_PAYOUT` | 409 | A payout with this idempotency key already exists with a different body. |
+| `PAYOUT_NOT_FOUND` | 404 | No such payout for this account. |
+| `PAYOUT_NOT_CANCELLABLE` | 409 | Only a `queued` payout can be cancelled. |
+| `WALLET_NOT_FOUND` | 404 | Unknown wallet id. |
+| `BENEFICIARY_NOT_FOUND` | 404 | Unknown beneficiary id. |
+| `NOT_CONNECTED_BANKING` | 400 | Live bank balance requested for a non-Connected-Banking wallet. |
+| `BANK_UPSTREAM_ERROR` | 502 | Partner bank API failed. |
+
+### Authentication & signing
+
+| `code` | Status | Meaning |
+|---|---|---|
+| `SIGNATURE_REQUIRED` | 401 | Key requires signed requests; headers missing. |
+| `SIGNATURE_TIMESTAMP_INVALID` | 401 | Timestamp outside the 300s window. |
+| `SIGNATURE_INVALID` | 401 | HMAC mismatch. |
+| `SIGNATURE_REPLAY` | 401 | Nonce already used. |
+
+<Tip>
+  Branch on `code`, not on the human-readable `error` string — messages may be
+  refined over time, codes are stable.
+</Tip>

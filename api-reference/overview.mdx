@@ -1,58 +1,59 @@
 ---
 title: "Overview"
-description: "UnPay API Reference - API-First Financial Infrastructure"
+description: "The UnPay Public API — send payouts and run AI voice campaigns from your own systems."
 ---
 
+The UnPay Public API is a REST, JSON, server-to-server API. Every request is
+authenticated with an API key scoped to your account, and every response is
+tenant-isolated to the key owner.
+
 <Note>
-  UnPay is an API-first platform providing robust financial infrastructure for businesses and fintechs.
+  **Base URL**
+
+  ```
+  https://api.unpay.co/api/public/v1
+  ```
 </Note>
 
-## Welcome
-
-Welcome to the UnPay API reference. Our APIs are designed to be easily integrated into your existing workflows, providing powerful tools for payment collection, connected banking, and lending operations.
+## Products
 
 <CardGroup cols={2}>
-  <Card
-    title="UPI Collect"
-    icon="qrcode"
-    href="/api-reference/endpoint/upi-collect-request"
-  >
-    Real-time payment acceptance via UPI Intent and Collect.
+  <Card title="Payouts API" icon="money-bill-transfer" href="/api-reference/payouts/create-a-payout">
+    Move money to bank accounts and UPI IDs over IMPS, NEFT, RTGS and UPI —
+    single or bulk (up to 500), with wallet balances, statements and saved
+    beneficiaries.
   </Card>
-  <Card
-    title="Connected Banking"
-    icon="bank"
-    href="/api-reference/endpoint/banking-accounts"
-  >
-    Securely connect to bank accounts and manage transactions.
-  </Card>
-  <Card
-    title="Lending OS"
-    icon="hand-holding-dollar"
-    href="/api-reference/endpoint/lending-loan-apply"
-  >
-    End-to-end infrastructure for digital lending platforms.
-  </Card>
-  <Card
-    title="Payouts"
-    icon="money-bill-transfer"
-    href="/api-reference/endpoint/payouts-pay"
-  >
-    Send payouts to beneficiaries via IMPS, NEFT, or RTGS instantly.
-  </Card>
-  <Card
-    title="Services"
-    icon="server"
-    href="/api-reference/endpoint/services-get"
-  >
-    Manage and fetch details for all your accessible UnPay services and accounts.
+  <Card title="AI Calling API" icon="phone-volume" href="/api-reference/account/api-root">
+    Create AI voice agents, launch outbound calling campaigns, manage contacts,
+    and pull call records with transcripts, recordings and AI summaries.
   </Card>
 </CardGroup>
 
-## Authentication
+## Conventions
 
-All API endpoints are authenticated using an **API Key** passed in the `x-api-key` request header. Obtain your key from the UnPay Dashboard under **Settings → API Security**.
+- **Requests** are JSON (`Content-Type: application/json`).
+- **List responses** return `{ "data": [...], "total": n }`.
+- **Errors** return `{ "error": "message", "code": "MACHINE_CODE" }` — see [Errors](/api-reference/errors).
+- **Money** is expressed in major units (₹) with up to two decimal places.
+- **Timestamps** are ISO-8601 (UTC).
 
-```http
-x-api-key: your_api_key_here
-```
+## Core concepts
+
+| Concept | Summary |
+|---|---|
+| [Authentication](/api-reference/authentication) | `Authorization: Bearer agl_…` or the `x-api-key` header. |
+| [Scopes](/api-reference/scopes) | Each key grants a fixed set of read/write scopes per resource. |
+| [Idempotency](/api-reference/idempotency) | Required for money movement — retries never double-pay. |
+| [Rate limits](/api-reference/rate-limits) | Per-key request budget; `429` when exceeded. |
+| [Request signing](/api-reference/request-signing) | Optional HMAC signing for high-assurance keys. |
+
+## Get an API key
+
+Create and scope keys in the [UnPay Dashboard](https://app.unpay.in) under
+**Developers → API Keys**. Grant only the scopes an integration needs, and
+optionally restrict a key to specific IPs or require signed requests.
+
+<Warning>
+  Your secret key (`agl_…`) is shown once at creation and stored only as a hash.
+  Keep it server-side — never ship it in browser, mobile, or public code.
+</Warning>

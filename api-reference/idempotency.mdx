@@ -1,0 +1,58 @@
+---
+title: "Idempotency"
+description: "Make money-moving requests safe to retry — without ever double-paying."
+---
+
+Network calls fail in ambiguous ways: a request times out, but you don't know
+whether the payout was created. **Idempotency keys** make retries safe — the
+same key always maps to the same payout.
+
+<Warning>
+  An idempotency key is **mandatory** for creating payouts
+  (`POST /payouts` and `POST /payouts/bulk`). A request without one is rejected:
+
+  ```json
+  { "error": "An Idempotency-Key header (or idempotencyKey field), 8–120 chars, is required for payouts.", "code": "IDEMPOTENCY_KEY_REQUIRED" }
+  ```
+</Warning>
+
+## How it works
+
+1. Generate a unique key per logical payout — a UUID works well. It must be
+   **8–120 characters**.
+2. Send it either as the `Idempotency-Key` header or an `idempotencyKey` field
+   in the JSON body.
+3. If you retry with the **same key**, UnPay returns the original payout
+   (HTTP `200` with `"idempotent": true`) instead of creating a new one.
+
+```bash
+curl https://api.unpay.co/api/public/v1/payouts \
+  -H "Authorization: Bearer agl_your_secret_key" \
+  -H "Idempotency-Key: 6f9a1c2e-7b40-4c0e-9f3a-2d1e5c8b0a11" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "walletId": "wal_123",
+    "amount": 2500.00,
+    "mode": "imps",
+    "accountType": "bank_account",
+    "accountName": "Rahul Sharma",
+    "accountNumber": "50100123456789",
+    "ifscCode": "HDFC0000123"
+  }'
+```
+
+- **First call** → `202 Accepted`, payout queued.
+- **Retry, same key** → `200 OK`, the original payout (no duplicate transfer).
+- **A genuinely different payout** must use a **new** key.
+
+## Bulk payouts
+
+For `POST /payouts/bulk`, send one **batch key** as the `Idempotency-Key`. UnPay
+derives a stable per-item key (`batchKey:index`) internally, so retrying the
+whole batch never double-pays any item. Look up a batch later by its `batchId`
+or the original batch key via `GET /payouts/bulk/{batchId}`.
+
+<Tip>
+  Persist the idempotency key with your own order/transaction record **before**
+  calling the API, so a crash-and-retry reuses the exact same key.
+</Tip>

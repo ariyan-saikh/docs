@@ -1,0 +1,479 @@
+openapi: 3.1.0
+info:
+  title: UnPay AI Calling API
+  version: "1.0.0"
+  description: >
+    Public REST API for the UnPay AI Voice platform. Programmatically manage
+    voice agents, outbound calling campaigns, their contacts, retrieve call
+    records (with transcripts and recordings), and subscribe to webhooks.
+
+    Authenticated with API keys (server-to-server). Every request is scoped to
+    the API key owner and fully tenant-isolated. List responses return
+    `{ data, total }`; errors return `{ error, details? }`.
+  contact:
+    name: UnPay Developer Support
+    url: https://api.unpay.co
+servers:
+  - url: https://api.unpay.co/api/public/v1
+    description: Production
+security:
+  - BearerApiKey: []
+  - ApiKeyHeader: []
+tags:
+  - name: Account
+  - name: Agents
+  - name: Campaigns
+  - name: Contacts
+  - name: Calls
+  - name: Webhooks
+
+components:
+  securitySchemes:
+    BearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: agl_
+      description: "Authorization: Bearer agl_your_secret_key"
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: "Alternative to the Authorization header."
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              path: { type: string }
+              message: { type: string }
+    Account:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        name: { type: string }
+        credits: { type: integer }
+        planType: { type: string }
+    Agent:
+      type: object
+      required: [name, type]
+      properties:
+        name: { type: string, description: Human-friendly agent name. }
+        type:
+          type: string
+          enum: [incoming, flow]
+          description: >
+            `incoming` = AI agent that answers inbound calls on a purchased
+            number (with optional live transfer). `flow` = outbound campaign
+            agent driven by a conversation flow/script.
+        telephonyProvider:
+          type: string
+          enum: [twilio, plivo, twilio_openai, elevenlabs-sip, openai-sip]
+          description: Which telephony engine handles the call. Defaults to `twilio`.
+        language: { type: string, default: en }
+        firstMessage: { type: string, description: Opening line the agent speaks. }
+        systemPrompt: { type: string }
+        voiceTone: { type: string }
+        personality: { type: string }
+        llmModel: { type: string, default: gpt-4o-mini }
+        temperature: { type: number, format: double, minimum: 0, maximum: 1, default: 0.5 }
+        elevenLabsVoiceId: { type: string }
+        openaiVoice:
+          type: string
+          enum: [alloy, echo, shimmer, ash, ballad, coral, sage, verse, cedar, marin]
+        transferEnabled: { type: boolean, default: false }
+        transferPhoneNumber: { type: string, description: E.164 number to transfer to (incoming agents). }
+        knowledgeBaseIds:
+          type: array
+          items: { type: string }
+    Campaign:
+      type: object
+      required: [name, type]
+      properties:
+        name: { type: string }
+        type: { type: string, description: "Campaign type, e.g. outbound." }
+        agentId: { type: string, description: The agent that will run the calls. }
+        goal: { type: string }
+        script: { type: string, description: Call script (mutually exclusive with flowId). }
+        flowId: { type: string, description: Visual conversation flow id (mutually exclusive with script). }
+        phoneNumberId: { type: string, description: Caller-ID number to dial from. }
+        status:
+          type: string
+          enum: [pending, running, paused, completed, failed, cancelled]
+          default: pending
+        scheduledFor: { type: string, format: date-time }
+        scheduleEnabled: { type: boolean, default: false }
+        scheduleTimeStart: { type: string, description: "Call-window start, HH:MM (e.g. 09:00)." }
+        scheduleTimeEnd: { type: string, description: "Call-window end, HH:MM (e.g. 17:00)." }
+        scheduleDays:
+          type: array
+          items: { type: string }
+          description: '["monday", "tuesday", ...]'
+        scheduleTimezone: { type: string, default: America/New_York }
+        retryEnabled: { type: boolean, default: false }
+        retryMaxAttempts: { type: integer, default: 3 }
+        retryIntervalMinutes: { type: integer, default: 60 }
+    Contact:
+      type: object
+      required: [firstName, phone]
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        phone: { type: string, description: Destination number in E.164 format. }
+        email: { type: string }
+        customFields:
+          type: object
+          additionalProperties: true
+          description: Arbitrary key/value pairs merged into the call context (personalisation).
+        status:
+          type: string
+          enum: [pending, calling, completed, failed, no_answer, busy]
+          default: pending
+    Call:
+      type: object
+      properties:
+        id: { type: string }
+        campaignId: { type: [string, "null"] }
+        contactId: { type: [string, "null"] }
+        phoneNumber: { type: string }
+        fromNumber: { type: string }
+        toNumber: { type: string }
+        status: { type: string, enum: [pending, ringing, in_progress, completed, failed, no_answer, busy] }
+        callDirection: { type: string, enum: [incoming, outgoing] }
+        duration: { type: [integer, "null"], description: Seconds. }
+        recordingUrl: { type: [string, "null"] }
+        transcript: { type: [string, "null"] }
+        aiSummary: { type: [string, "null"] }
+        sentiment: { type: [string, "null"] }
+        classification: { type: [string, "null"] }
+        creditsUsed: { type: integer }
+        startedAt: { type: [string, "null"], format: date-time }
+        endedAt: { type: [string, "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+    WebhookCreate:
+      type: object
+      required: [name, url, events]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        url: { type: string, format: uri, description: HTTPS endpoint that receives event deliveries. }
+        method: { type: string, default: POST }
+        events:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum:
+              - call.started
+              - call.ringing
+              - call.answered
+              - call.completed
+              - call.failed
+              - call.no_answer
+              - call.busy
+              - call.voicemail
+              - call.transferred
+              - campaign.started
+              - campaign.paused
+              - campaign.resumed
+              - campaign.completed
+              - campaign.failed
+              - campaign.cancelled
+              - contact.uploaded
+              - agent.error
+              - payout.initiated
+              - payout.processing
+              - payout.completed
+              - payout.failed
+              - payout.reversed
+              - webhook.test
+        campaignIds:
+          type: array
+          items: { type: string }
+          description: Restrict deliveries to specific campaigns. Omit for all.
+        headers:
+          type: object
+          additionalProperties: { type: string }
+          description: Static headers added to each delivery.
+        authType:
+          type: string
+          enum: [none, basic, bearer]
+        authCredentials:
+          type: object
+          additionalProperties: { type: string }
+          description: Encrypted at rest; never returned in responses.
+        isActive: { type: boolean, default: true }
+    Webhook:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        url: { type: string }
+        method: { type: string }
+        events:
+          type: array
+          items: { type: string }
+        campaignIds:
+          type: array
+          items: { type: string }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        secret:
+          type: string
+          description: >
+            Signing secret used to verify delivery HMACs. Returned **once** on
+            creation only — store it securely. Never returned by list/get.
+
+paths:
+  /:
+    get:
+      tags: [Account]
+      summary: API root
+      description: Returns API metadata plus the authenticated user id, granted scopes and available resources.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name: { type: string }
+                  version: { type: string }
+                  authenticatedUserId: { type: string }
+                  scopes:
+                    type: array
+                    items: { type: string }
+                  resources:
+                    type: array
+                    items: { type: string }
+
+  /me:
+    get:
+      tags: [Account]
+      summary: Current account
+      description: Returns the account that owns the API key, including remaining credits.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        "404": { description: User not found }
+
+  /agents:
+    get:
+      tags: [Agents]
+      summary: List agents
+      description: "Requires scope agents:read."
+      responses:
+        "200": { description: "{ data: Agent[], total }" }
+    post:
+      tags: [Agents]
+      summary: Create an agent
+      description: "Requires scope agents:write."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Agent' }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Agent' } } } }
+        "400": { description: Validation failed, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /agents/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Agents]
+      summary: Get an agent
+      description: "Requires scope agents:read."
+      responses:
+        "200": { description: Agent }
+        "404": { description: Agent not found }
+    put:
+      tags: [Agents]
+      summary: Update an agent
+      description: "Requires scope agents:write. Partial update — any subset of writable fields."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Agent' }
+      responses:
+        "200": { description: Updated }
+        "404": { description: Agent not found }
+    delete:
+      tags: [Agents]
+      summary: Delete an agent
+      description: "Requires scope agents:write."
+      responses:
+        "200": { description: "{ success: true }" }
+        "404": { description: Agent not found }
+
+  /campaigns:
+    get:
+      tags: [Campaigns]
+      summary: List campaigns
+      description: "Requires scope campaigns:read."
+      responses:
+        "200": { description: "{ data: Campaign[], total }" }
+    post:
+      tags: [Campaigns]
+      summary: Create a campaign
+      description: "Requires scope campaigns:write."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Campaign' }
+      responses:
+        "201": { description: Created }
+        "400": { description: Validation failed, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /campaigns/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Campaigns]
+      summary: Get a campaign
+      description: "Requires scope campaigns:read."
+      responses:
+        "200": { description: Campaign }
+        "404": { description: Campaign not found }
+    put:
+      tags: [Campaigns]
+      summary: Update a campaign
+      description: "Requires scope campaigns:write. Partial update."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Campaign' }
+      responses:
+        "200": { description: Updated }
+        "404": { description: Campaign not found }
+    delete:
+      tags: [Campaigns]
+      summary: Delete a campaign
+      description: "Requires scope campaigns:write."
+      responses:
+        "200": { description: "{ success: true }" }
+        "404": { description: Campaign not found }
+
+  /campaigns/{campaignId}/contacts:
+    parameters:
+      - { name: campaignId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Contacts]
+      summary: List campaign contacts
+      description: "Requires scope contacts:read."
+      responses:
+        "200": { description: "{ data: Contact[], total }" }
+        "404": { description: Campaign not found }
+    post:
+      tags: [Contacts]
+      summary: Add a contact to a campaign
+      description: "Requires scope contacts:write."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Contact' }
+      responses:
+        "201": { description: Created }
+        "400": { description: Validation failed, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        "404": { description: Campaign not found }
+
+  /campaigns/{campaignId}/contacts/{id}:
+    parameters:
+      - { name: campaignId, in: path, required: true, schema: { type: string } }
+      - { name: id, in: path, required: true, schema: { type: string } }
+    delete:
+      tags: [Contacts]
+      summary: Remove a contact
+      description: "Requires scope contacts:write."
+      responses:
+        "200": { description: "{ success: true }" }
+        "404": { description: Contact not found }
+
+  /calls:
+    get:
+      tags: [Calls]
+      summary: List calls
+      description: "Requires scope calls:read. Read-only."
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 100, maximum: 500 } }
+      responses:
+        "200": { description: "{ data: Call[], total }" }
+
+  /calls/{id}:
+    get:
+      tags: [Calls]
+      summary: Get a call
+      description: "Requires scope calls:read. Includes transcript, recording URL and AI summary when available."
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Call, content: { application/json: { schema: { $ref: '#/components/schemas/Call' } } } }
+        "404": { description: Call not found }
+
+  /webhooks:
+    get:
+      tags: [Webhooks]
+      summary: List webhooks
+      description: "Requires scope webhooks:read. The signing secret and auth credentials are never returned."
+      responses:
+        "200": { description: "{ data: Webhook[], total }" }
+    post:
+      tags: [Webhooks]
+      summary: Create a webhook
+      description: >
+        Requires scope webhooks:write. The response includes a one-time `secret`
+        used to verify delivery signatures — store it now, it cannot be
+        retrieved again.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WebhookCreate' }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Webhook' } } } }
+        "400": { description: Validation failed, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /webhooks/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Webhooks]
+      summary: Get a webhook
+      description: "Requires scope webhooks:read."
+      responses:
+        "200": { description: Webhook }
+        "404": { description: Webhook not found }
+    put:
+      tags: [Webhooks]
+      summary: Update a webhook
+      description: "Requires scope webhooks:write. The signing secret is immutable via this route."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WebhookCreate' }
+      responses:
+        "200": { description: Updated }
+        "404": { description: Webhook not found }
+    delete:
+      tags: [Webhooks]
+      summary: Delete a webhook
+      description: "Requires scope webhooks:write."
+      responses:
+        "200": { description: "{ success: true }" }
+        "404": { description: Webhook not found }

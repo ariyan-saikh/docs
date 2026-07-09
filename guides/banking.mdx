@@ -1,0 +1,95 @@
+---
+title: "Wallets & Connected Banking"
+description: "Read wallet balances, pull statements, and fetch live bank balances via Connected Banking."
+---
+
+Every payout draws from a **wallet**. This guide covers checking balances,
+understanding wallet types, pulling a statement, and reading a live bank balance
+through Connected Banking. All endpoints need an API key with the
+`payouts:read` [scope](/api-reference/scopes).
+
+## List your wallets
+
+```bash
+curl https://api.unpay.co/api/public/v1/payouts/wallets \
+  -H "Authorization: Bearer agl_your_secret_key"
+```
+
+Each wallet reports per-mode availability (IMPS/NEFT/RTGS/UPI) and a
+`balanceSource`:
+
+| `balanceSource` | Meaning |
+|---|---|
+| `ledger` | Balance is tracked in UnPay's ledger — authoritative. |
+| `bank` | A Connected Banking wallet — the ledger figure is **not** authoritative; fetch the live bank balance instead. |
+
+## Check your balance
+
+For the default wallet:
+
+```bash
+curl https://api.unpay.co/api/public/v1/payouts/balance \
+  -H "Authorization: Bearer agl_your_secret_key"
+```
+
+```json
+{
+  "data": {
+    "balance": 152340.50,
+    "holdBalance": 2500.00,
+    "virtualBalance": 0,
+    "totalAvailable": 152340.50
+  }
+}
+```
+
+- **balance** — total funds in the wallet.
+- **holdBalance** — funds reserved for in-flight payouts.
+- **virtualBalance** — virtual/credit component, where applicable.
+- **totalAvailable** — computed as `balance + virtualBalance`.
+
+<Tip>
+  A payout debits **amount + fee + GST**, and in-flight payouts are shown as
+  `holdBalance`. Leave headroom for both when sizing transfers.
+</Tip>
+
+## Live bank balance (Connected Banking)
+
+For a `balanceSource: bank` wallet (Yes Bank), fetch the real-time figure
+straight from the partner bank:
+
+```bash
+curl https://api.unpay.co/api/public/v1/payouts/wallets/wal_123/bank-balance \
+  -H "Authorization: Bearer agl_your_secret_key"
+```
+
+```json
+{
+  "walletId": "wal_123",
+  "accountNumber": "XXXXXX6789",
+  "clearBalance": 875000.00,
+  "balFetchTimeStamp": "2026-07-09T10:15:00.000Z",
+  "currency": "INR",
+  "balanceSource": "bank"
+}
+```
+
+Common errors: `400 NOT_CONNECTED_BANKING` (wallet isn't a bank wallet),
+`400 NO_LINKED_ACCOUNT`, `404 WALLET_NOT_FOUND`, or `502 BANK_UPSTREAM_ERROR`
+(the partner bank API was unavailable — retry).
+
+## Pull a statement
+
+Get a paginated ledger of wallet transactions, with optional filters:
+
+```bash
+curl "https://api.unpay.co/api/public/v1/payouts/statement?dateFrom=2026-07-01&dateTo=2026-07-09&page=1&pageSize=50" \
+  -H "Authorization: Bearer agl_your_secret_key"
+```
+
+Filter by `dateFrom`, `dateTo`, `type` and `walletId`. Page with `page` and
+`pageSize` (max 200).
+
+<Card title="Ready to disburse?" icon="money-bill-transfer" href="/guides/first-payout">
+  Once you've confirmed available balance, send your first payout.
+</Card>

@@ -1,0 +1,110 @@
+---
+title: "Run your first calling campaign"
+description: "Create an AI voice agent, launch an outbound campaign, and read the results."
+---
+
+This walkthrough creates an AI voice agent, builds an outbound campaign with
+contacts, and reads back the call results. You'll need an API key with
+`agents:write`, `campaigns:write`, `contacts:write` and `calls:read`
+[scopes](/api-reference/scopes).
+
+<Steps>
+<Step title="Create a flow agent">
+  A `flow` agent runs outbound campaign calls.
+
+  ```bash
+  curl https://api.unpay.co/api/public/v1/agents \
+    -H "Authorization: Bearer agl_your_secret_key" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "Appointment reminder bot",
+      "type": "flow",
+      "language": "en",
+      "firstMessage": "Hi, this is a quick reminder about your appointment tomorrow.",
+      "systemPrompt": "You are a friendly assistant confirming appointments. Keep it under a minute.",
+      "temperature": 0.5
+    }'
+  ```
+
+  The response includes the new agent's `id`.
+</Step>
+
+<Step title="Create a campaign">
+  Pair the agent with a caller-ID number and (optionally) a call-window
+  schedule.
+
+  ```bash
+  curl https://api.unpay.co/api/public/v1/campaigns \
+    -H "Authorization: Bearer agl_your_secret_key" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name": "July reminders",
+      "type": "outbound",
+      "agentId": "agt_...",
+      "goal": "Confirm tomorrow'\''s appointments",
+      "scheduleEnabled": true,
+      "scheduleTimeStart": "09:00",
+      "scheduleTimeEnd": "18:00",
+      "scheduleTimezone": "Asia/Kolkata",
+      "scheduleDays": ["monday","tuesday","wednesday","thursday","friday"]
+    }'
+  ```
+</Step>
+
+<Step title="Add contacts">
+  Contacts belong to a campaign. Use E.164 phone numbers; `customFields` are
+  merged into the call for personalisation.
+
+  ```bash
+  curl https://api.unpay.co/api/public/v1/campaigns/cmp_.../contacts \
+    -H "Authorization: Bearer agl_your_secret_key" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "firstName": "Rahul",
+      "lastName": "Sharma",
+      "phone": "+919812345678",
+      "customFields": { "appointmentTime": "11:30 AM" }
+    }'
+  ```
+
+  Repeat for each contact, or upload them in your dashboard for large lists.
+</Step>
+
+<Step title="Read the results">
+  Each dial creates a call record with transcript, recording and an AI summary.
+
+  ```bash
+  curl "https://api.unpay.co/api/public/v1/calls?limit=50" \
+    -H "Authorization: Bearer agl_your_secret_key"
+  ```
+
+  Fetch one call for full detail:
+
+  ```bash
+  curl https://api.unpay.co/api/public/v1/calls/cal_... \
+    -H "Authorization: Bearer agl_your_secret_key"
+  ```
+
+  ```json
+  {
+    "id": "cal_...",
+    "status": "completed",
+    "duration": 48,
+    "recordingUrl": "https://...",
+    "transcript": "Agent: Hi, this is a quick reminder...",
+    "aiSummary": "Customer confirmed the 11:30 AM appointment.",
+    "sentiment": "positive",
+    "creditsUsed": 3
+  }
+  ```
+</Step>
+</Steps>
+
+<Note>
+  Voice minutes are billed as **credits**. Check your balance with `GET /me`
+  before launching a large campaign.
+</Note>
+
+<Card title="Stream call events live" icon="bell" href="/guides/verify-webhooks">
+  Subscribe to `call.completed`, `campaign.completed` and more via webhooks.
+</Card>

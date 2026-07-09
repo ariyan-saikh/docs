@@ -1,94 +1,79 @@
 ---
 title: "How UnPay works"
-description: "Preview changes locally to update your docs"
+description: "The building blocks of the UnPay platform — keys, scopes, wallets, credits and events."
 ---
 
-<Info>
-  **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
-</Info>
+UnPay is a single REST API in front of two products. This page explains the
+concepts you'll use across both.
 
-Follow these steps to install and run Mintlify on your operating system.
+## One API, scoped keys
+
+All requests go to:
+
+```
+https://api.unpay.co/api/public/v1
+```
+
+You authenticate with an [API key](/api-reference/authentication) that carries a
+fixed set of [scopes](/api-reference/scopes). A key can read/write only the
+resources its scopes allow, is optionally locked to an IP allowlist, and can
+optionally require [signed requests](/api-reference/request-signing). Every query
+is constrained to the key owner, so one account can never see another's data.
+
+## Payouts: wallets and money movement
 
 <Steps>
-<Step title="Install the Mintlify CLI">
-
-```bash
-npm i -g mint
-```
-</Step>
-
-<Step title="Preview locally">
-
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
-
-```bash
-mint dev
-```
-
-A local preview of your documentation will be available at `http://localhost:3000`.
-
-</Step>
+  <Step title="Fund a wallet">
+    Money moves out of a **wallet**. A wallet exposes a balance, per-mode
+    availability (IMPS/NEFT/RTGS/UPI), and a `balanceSource` of either `ledger`
+    or `bank` (Connected Banking). List them with `GET /payouts/wallets`.
+  </Step>
+  <Step title="Send a payout">
+    `POST /payouts` transfers to a bank account or UPI ID — either a manual
+    beneficiary or a saved `payoutAccountId`. Money movement **requires an
+    [idempotency key](/api-reference/idempotency)** so retries never double-pay.
+  </Step>
+  <Step title="Track status">
+    A payout moves through `queued → processing → completed` (or `failed` /
+    `returned` / `cancelled`). Poll `GET /payouts/{id}` or, better, subscribe to
+    webhooks.
+  </Step>
 </Steps>
 
-## Custom ports
+## AI Calling: agents, campaigns, calls
 
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
+<Steps>
+  <Step title="Create an agent">
+    An **agent** defines the AI voice, language, prompt and behaviour. `flow`
+    agents run outbound campaigns; `incoming` agents answer inbound calls.
+  </Step>
+  <Step title="Launch a campaign">
+    A **campaign** pairs an agent with a caller-ID number and a list of
+    **contacts**, with optional scheduling windows and retry rules.
+  </Step>
+  <Step title="Read the results">
+    Each dial produces a **call** record with status, duration, transcript,
+    recording URL and an AI summary. Fetch them via `GET /calls`.
+  </Step>
+</Steps>
 
-```bash
-mint dev --port 3333
-```
+Voice minutes are metered in **credits** — check your balance any time with
+`GET /me`.
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
+## Events over webhooks
 
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
+Instead of polling, register a [webhook](/guides/verify-webhooks) to receive
+signed, replay-protected deliveries for payout, call and campaign events such as
+`payout.completed`, `call.completed` and `campaign.completed`.
 
-## Mintlify versions
+## Built for money movement
 
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
+- **Idempotency** on every payout — safe retries by design.
+- **Cluster-wide rate limits** per key — see [Rate limits](/api-reference/rate-limits).
+- **Secrets encrypted at rest** — signing secrets and webhook credentials are
+  never stored or returned in plaintext.
+- **Stable error codes** — branch on `code`, see [Errors](/api-reference/errors).
 
-```bash
-npm mint update
-```
-
-## Validating links
-
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
-
-```bash
-mint broken-links
-```
-
-## Deployment
-
-If the deployment is successful, you should see the following:
-
-<Frame>
-  <img src="/images/checks-passed.png" alt="Screenshot of a deployment confirmation message that says All checks have passed." style={{ borderRadius: '0.5rem' }} />
-</Frame>
-
-## Code formatting
-
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
-
-## Troubleshooting
-
-<AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
-
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
-  </Accordion>
-
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
-  </Accordion>
-</AccordionGroup>
-
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).
+<Card title="Ready to build?" icon="rocket" href="/quickstart">
+  Follow the Quickstart to make your first authenticated call.
+</Card>

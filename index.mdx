@@ -1,49 +1,55 @@
 ---
 title: "Introduction"
-description: "UnPay is a unified API platform that enables businesses to integrate payments, payouts, KYC verification, and banking infrastructure through a single, consistent interface.
-
-It eliminates the complexity of managing multiple financial service providers by offering a standardized API layer for transaction processing, user verification, and fund movement."
+description: "UnPay is API-first financial and communication infrastructure — send payouts and run AI voice campaigns through one consistent REST API."
 ---
 
-## What You Can Build
+UnPay gives your product two production-grade capabilities behind a single,
+consistent REST API:
 
-Using UnPay APIs, you can:
+- **Payouts** — disburse money to any bank account or UPI ID over IMPS, NEFT,
+  RTGS and UPI, one at a time or in bulk.
+- **AI Calling** — build AI voice agents and run outbound calling campaigns,
+  then pull back transcripts, recordings and AI summaries.
 
-1. Accept payments via UPI, cards, and net banking
-2. Initiate and manage payouts to bank accounts and beneficiaries
-3. Verify user identities with KYC services (PAN, Aadhaar, bank validation)
-4. Automate transaction workflows using real-time webhooks
-5. Build and scale fintech products such as marketplaces, wallets, lending systems, and neobanking platforms
+Everything is server-to-server, authenticated with scoped API keys, and
+tenant-isolated to your account.
 
-## Product **Suite**
+## What you can build
 
-UnPay provides a modular suite of APIs that cover the full lifecycle of financial operations—from payment collection to fund disbursement, identity verification, and banking infrastructure.
-
-Each product is designed to operate independently while maintaining consistency across the platform.
-
-<Columns cols={2}>
-  <Card title="Payments" icon="album-collection" href="/development">
-    Accept and manage payments across multiple channels with a single integration.
+<CardGroup cols={2}>
+  <Card title="Payouts" icon="money-bill-transfer" href="/api-reference/payouts/create-a-payout">
+    Vendor settlements, refunds, salary and gig payouts, marketplace seller
+    payments — single or up to 500 per call, with wallets and beneficiaries.
   </Card>
-
-  <Card title="Payouts" icon="money-bill-transfer" href="/essentials/settings">
-    Automate and scale fund disbursements to bank accounts and beneficiaries.
+  <Card title="AI Calling" icon="phone-volume" href="/api-reference/account/api-root">
+    Automated reminders, lead qualification, surveys and support callbacks with
+    AI voice agents and managed campaigns.
   </Card>
-
-  <Card title="KYC & Verification" icon="diagram-successor" href="/essentials/navigation">
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Webhooks" icon="bell" href="/guides/verify-webhooks">
+    Receive real-time payout, call and campaign events, signed and
+    replay-protected.
   </Card>
-
-  <Card title="Banking APIs" icon="terminal" href="/api-reference/introduction">
-    Integrate core banking capabilities directly into your application.                   
+  <Card title="Idempotent money movement" icon="shield-check" href="/api-reference/idempotency">
+    Retry safely — the same idempotency key never creates a duplicate transfer.
   </Card>
+</CardGroup>
 
-  <Column>
-  </Column>
-</Columns>
+## Start here
 
-## Need inspiration?
-
-<Card title="See complete examples" icon="stars" href="https://mintlify.com/customers">
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get an API key and make your first authenticated call in minutes.
+  </Card>
+  <Card title="How UnPay works" icon="diagram-project" href="/how-unpay-works">
+    The platform model — keys, scopes, wallets, credits and events.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/overview">
+    Full endpoint reference for the Payouts and AI Calling APIs.
+  </Card>
+  <Card title="Guides" icon="map" href="/guides/first-payout">
+    Task-based walkthroughs: first payout, first campaign, verifying webhooks.
+  </Card>
+  <Card title="Knowledge Base" icon="circle-question" href="/kb/index">
+    Quick answers and troubleshooting for keys, payouts, calling and webhooks.
+  </Card>
+</CardGroup>

@@ -1,0 +1,120 @@
+---
+title: "Send your first payout"
+description: "Move money to a bank account or UPI ID, end to end."
+---
+
+This walkthrough sends a single payout and tracks it to completion. You'll need
+an API key with the `payouts:read` and `payouts:write`
+[scopes](/api-reference/scopes).
+
+<Steps>
+<Step title="Find a wallet">
+  Payouts draw from a wallet. List yours and note a `walletId`:
+
+  ```bash
+  curl https://api.unpay.co/api/public/v1/payouts/wallets \
+    -H "Authorization: Bearer agl_your_secret_key"
+  ```
+
+  Confirm it has enough balance for the amount **plus fees and GST**:
+
+  ```bash
+  curl https://api.unpay.co/api/public/v1/payouts/balance \
+    -H "Authorization: Bearer agl_your_secret_key"
+  ```
+</Step>
+
+<Step title="Create the payout">
+  Send to a bank account with an [idempotency key](/api-reference/idempotency).
+  Generate a fresh unique key for this payout (a UUID works well).
+
+  ```bash
+  curl https://api.unpay.co/api/public/v1/payouts \
+    -H "Authorization: Bearer agl_your_secret_key" \
+    -H "Idempotency-Key: 6f9a1c2e-7b40-4c0e-9f3a-2d1e5c8b0a11" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "walletId": "wal_123",
+      "amount": 2500.00,
+      "mode": "imps",
+      "accountType": "bank_account",
+      "accountName": "Rahul Sharma",
+      "accountNumber": "50100123456789",
+      "ifscCode": "HDFC0000123",
+      "purpose": "Vendor settlement",
+      "remarks": "Invoice #4821"
+    }'
+  ```
+
+  To pay a UPI ID instead, use `"mode": "upi"`, `"accountType": "upi"` and
+  `"upiId": "rahul@okhdfcbank"`. To reuse a saved beneficiary, pass
+  `"payoutAccountId"` instead of the manual account fields.
+
+  A success returns `202 Accepted`:
+
+  ```json
+  {
+    "data": {
+      "id": "pyt_...",
+      "referenceId": "UNPAY...",
+      "amount": 2500,
+      "fee": 5,
+      "gst": 0.9,
+      "total": 2505.9,
+      "mode": "imps",
+      "status": "queued",
+      "initiatedAt": "2026-07-09T10:15:00.000Z"
+    }
+  }
+  ```
+</Step>
+
+<Step title="Track it to completion">
+  Poll the payout, or (recommended) receive a webhook.
+
+  ```bash
+  curl https://api.unpay.co/api/public/v1/payouts/pyt_... \
+    -H "Authorization: Bearer agl_your_secret_key"
+  ```
+
+  Status flows `queued → processing → completed`. Terminal failure states are
+  `failed` and `returned`. A `queued` payout can still be cancelled:
+
+  ```bash
+  curl -X POST https://api.unpay.co/api/public/v1/payouts/pyt_.../cancel \
+    -H "Authorization: Bearer agl_your_secret_key"
+  ```
+</Step>
+</Steps>
+
+## Paying many at once
+
+For batches, send up to 500 items in one call with a single batch
+idempotency key:
+
+```bash
+curl https://api.unpay.co/api/public/v1/payouts/bulk \
+  -H "Authorization: Bearer agl_your_secret_key" \
+  -H "Idempotency-Key: payroll-2026-07-09" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "walletId": "wal_123",
+    "items": [
+      { "amount": 2500, "mode": "imps", "accountType": "bank_account", "accountName": "Rahul Sharma", "accountNumber": "50100123456789", "ifscCode": "HDFC0000123", "reference": "emp-001" },
+      { "amount": 1800, "mode": "upi", "accountType": "upi", "accountName": "Priya Nair", "upiId": "priya@okaxis", "reference": "emp-002" }
+    ]
+  }'
+```
+
+Per-item failures don't abort the batch — a `207` means some items failed, so
+inspect each result. Look up the batch later with
+`GET /payouts/bulk/{batchId}`.
+
+<Tip>
+  Store your idempotency key alongside your own payout record **before** calling
+  the API, so any retry reuses the same key and can't create a duplicate.
+</Tip>
+
+<Card title="Get real-time updates" icon="bell" href="/guides/verify-webhooks">
+  Subscribe to `payout.completed` / `payout.failed` instead of polling.
+</Card>

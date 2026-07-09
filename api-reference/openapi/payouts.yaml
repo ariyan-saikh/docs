@@ -1,0 +1,477 @@
+openapi: 3.1.0
+info:
+  title: UnPay Payouts API
+  version: "1.0.0"
+  description: >
+    Merchant/partner integration API for initiating and tracking payouts.
+    Authenticated with API keys (server-to-server). Money movement requires an
+    Idempotency-Key so retries can never create a duplicate transfer.
+  contact:
+    name: UnPay Developer Support
+    url: https://api.unpay.co
+servers:
+  - url: https://api.unpay.co/api/public/v1
+    description: Production
+security:
+  - BearerApiKey: []
+  - ApiKeyHeader: []
+tags:
+  - name: Payouts
+  - name: Beneficiaries
+  - name: Wallet
+
+components:
+  securitySchemes:
+    BearerApiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: agl_
+      description: "Authorization: Bearer agl_your_secret_key"
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: "Alternative to the Authorization header."
+    # Optional, opt-in per key (requireSignedRequests). When enabled, every
+    # request must also carry:
+    #   X-Unpay-Timestamp : unix seconds (must be within 300s of server time)
+    #   X-Unpay-Nonce     : unique per request (single-use, replay-protected)
+    #   X-Unpay-Signature : sha256=HMAC(signingSecret,
+    #                         `${timestamp}.${nonce}.${METHOD}.${path}.${rawBody}`)
+    # Rejections: SIGNATURE_REQUIRED / SIGNATURE_TIMESTAMP_INVALID /
+    #             SIGNATURE_INVALID / SIGNATURE_REPLAY (all HTTP 401).
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 8, maxLength: 120 }
+      description: Unique key per payout; a retry with the same key returns the original payout.
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        code: { type: string }
+      required: [error]
+    Money:
+      type: number
+      format: double
+      exclusiveMinimum: 0
+      maximum: 100000000
+      description: Major units; at most 2 decimal places; up to ₹10 crore per transfer.
+    Mode: { type: string, enum: [imps, neft, rtgs, upi] }
+    PayoutCreate:
+      type: object
+      required: [walletId, amount, mode]
+      properties:
+        walletId: { type: string }
+        amount: { $ref: '#/components/schemas/Money' }
+        mode: { $ref: '#/components/schemas/Mode' }
+        payoutAccountId:
+          type: string
+          description: A saved beneficiary id. Omit to pass a manual beneficiary.
+        accountType: { type: string, enum: [bank_account, upi] }
+        accountName: { type: string, maxLength: 200 }
+        accountNumber: { type: string, pattern: '^[A-Za-z0-9]{4,34}$' }
+        ifscCode: { type: string, pattern: '^[A-Za-z]{4}0[A-Za-z0-9]{6}$', description: RBI IFSC format, e.g. HDFC0000123 }
+        bankName: { type: string, maxLength: 140 }
+        upiId: { type: string, description: UPI VPA, e.g. name@bank }
+        purpose: { type: string, maxLength: 200 }
+        remarks: { type: string, maxLength: 500 }
+        idempotencyKey:
+          type: string
+          minLength: 8
+          maxLength: 120
+          description: Alternative to the Idempotency-Key header.
+    PayoutSummary:
+      type: object
+      properties:
+        id: { type: string }
+        referenceId: { type: string }
+        providerTransactionId: { type: [string, "null"] }
+        amount: { $ref: '#/components/schemas/Money' }
+        fee: { $ref: '#/components/schemas/Money' }
+        gst: { $ref: '#/components/schemas/Money' }
+        total: { $ref: '#/components/schemas/Money' }
+        mode: { $ref: '#/components/schemas/Mode' }
+        status:
+          type: string
+          enum: [queued, pending, processing, completed, failed, returned, cancelled]
+        initiatedAt: { type: [string, "null"], format: date-time }
+    Payout:
+      description: >
+        Full payout record returned by GET (single/list), cancel, and idempotent
+        replays. The create call (202) returns the leaner PayoutSummary above.
+      type: object
+      properties:
+        id: { type: string }
+        referenceId: { type: string }
+        walletId: { type: string }
+        payoutAccountId: { type: [string, "null"] }
+        amount: { $ref: '#/components/schemas/Money' }
+        fee: { $ref: '#/components/schemas/Money' }
+        gst: { $ref: '#/components/schemas/Money' }
+        netAmount: { $ref: '#/components/schemas/Money' }
+        currency: { type: string, default: INR }
+        mode: { $ref: '#/components/schemas/Mode' }
+        status:
+          type: string
+          enum: [queued, pending, processing, completed, failed, returned, cancelled]
+        purpose: { type: [string, "null"] }
+        remarks: { type: [string, "null"] }
+        batchId: { type: [string, "null"] }
+        failureReason: { type: [string, "null"] }
+        providerTransactionId: { type: [string, "null"] }
+        idempotencyKey: { type: [string, "null"] }
+        beneficiary:
+          type: object
+          description: Beneficiary snapshot (account name, masked number, IFSC/UPI, bank).
+          additionalProperties: true
+        initiatedAt: { type: [string, "null"], format: date-time }
+        processedAt: { type: [string, "null"], format: date-time }
+        completedAt: { type: [string, "null"], format: date-time }
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+        totalPages: { type: integer }
+    Beneficiary:
+      type: object
+      required: [accountType, accountName]
+      properties:
+        accountType: { type: string, enum: [bank_account, upi] }
+        accountName: { type: string }
+        accountNumber: { type: string }
+        ifscCode: { type: string }
+        bankName: { type: string }
+        upiId: { type: string }
+        nickname: { type: string }
+        isDefault: { type: boolean }
+    Balance:
+      type: object
+      properties:
+        balance: { type: number }
+        holdBalance: { type: number }
+        virtualBalance: { type: number }
+        totalAvailable: { type: number, description: "Computed as balance + virtualBalance." }
+    Wallet:
+      type: object
+      properties:
+        id: { type: string }
+        accountNumber: { type: [string, "null"] }
+        label: { type: [string, "null"] }
+        ifscCode: { type: [string, "null"] }
+        balance: { type: number }
+        holdBalance: { type: number }
+        virtualBalance: { type: number }
+        totalAvailable: { type: number, description: "balance + virtualBalance." }
+        currency: { type: string }
+        status: { type: string }
+        connectedBanking: { type: boolean }
+        balanceSource: { type: string, enum: [ledger, bank] }
+        services:
+          type: object
+          properties:
+            imps: { type: boolean }
+            neft: { type: boolean }
+            rtgs: { type: boolean }
+            upi: { type: boolean }
+        provider:
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+            displayName: { type: string }
+            category: { type: string }
+    Transaction:
+      type: object
+      properties:
+        id: { type: string }
+        walletId: { type: string }
+        type: { type: string }
+        amount: { type: string }
+        balanceBefore: { type: string }
+        balanceAfter: { type: string }
+        referenceType: { type: [string, "null"] }
+        referenceId: { type: [string, "null"] }
+        description: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+
+paths:
+  /payouts:
+    post:
+      tags: [Payouts]
+      summary: Create a payout
+      description: "Requires scope payouts:write and an Idempotency-Key."
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PayoutCreate' }
+      responses:
+        "202":
+          description: Payout accepted (queued/processing).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PayoutSummary' }
+        "200":
+          description: "Idempotent replay — the original payout is returned (with idempotent=true)."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Payout'
+                      - type: object
+                        properties:
+                          idempotent: { type: boolean }
+        "400": { description: "Validation failed / IDEMPOTENCY_KEY_REQUIRED", content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        "402": { description: "INSUFFICIENT_BALANCE / WALLET_INACTIVE", content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        "403": { description: "MODE_NOT_ENABLED / missing scope / plan / IP not allowlisted", content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        "404": { description: "WALLET_NOT_FOUND / BENEFICIARY_NOT_FOUND", content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        "409": { description: "DUPLICATE_PAYOUT", content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        "429": { description: Rate limit exceeded }
+    get:
+      tags: [Payouts]
+      summary: List payouts
+      description: "Requires scope payouts:read."
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 25 } }
+      responses:
+        "200":
+          description: Paginated payout list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Payout' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+
+  /payouts/bulk/{batchId}:
+    get:
+      tags: [Payouts]
+      summary: Bulk batch status roll-up
+      description: >
+        Requires scope payouts:read. batchId accepts either the batchId returned
+        by POST /payouts/bulk or the original Idempotency-Key the batch was
+        created with.
+      parameters:
+        - { name: batchId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: "{ batchId, createdAt, total, statusCounts, items[] }" }
+        "404": { description: "BATCH_NOT_FOUND" }
+
+  /payouts/bulk:
+    post:
+      tags: [Payouts]
+      summary: Create up to 500 payouts
+      description: "Requires scope payouts:write and an Idempotency-Key (batch key)."
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [walletId, items]
+              properties:
+                walletId: { type: string }
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/PayoutCreate'
+                      - type: object
+                        properties:
+                          reference: { type: string }
+      responses:
+        "202": { description: "All items accepted — { batchId, batchKey, total, succeeded, failed, items[] }" }
+        "207": { description: Partial success — inspect per-item results }
+        "400": { description: "Validation / IDEMPOTENCY_KEY_REQUIRED" }
+        "404": { description: "WALLET_NOT_FOUND" }
+
+  /payouts/{id}:
+    get:
+      tags: [Payouts]
+      summary: Get a payout
+      description: "Requires scope payouts:read."
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Payout detail, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Payout' } } } } } }
+        "404": { description: "PAYOUT_NOT_FOUND" }
+
+  /payouts/{id}/cancel:
+    post:
+      tags: [Payouts]
+      summary: Cancel a queued payout
+      description: "Requires scope payouts:write. Only a queued payout can be cancelled."
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Cancelled, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Payout' } } } } } }
+        "404": { description: "PAYOUT_NOT_FOUND" }
+        "409": { description: "PAYOUT_NOT_CANCELLABLE" }
+
+  /payouts/balance:
+    get:
+      tags: [Wallet]
+      summary: Wallet balance (default provider)
+      description: "Requires scope payouts:read."
+      responses:
+        "200": { description: Balance, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Balance' } } } } } }
+
+  /payouts/wallets:
+    get:
+      tags: [Wallet]
+      summary: List wallets
+      description: >
+        Requires scope payouts:read. Each wallet carries balanceSource
+        ("ledger" | "bank") and connectedBanking — for "bank" wallets the ledger
+        balance is not authoritative; use /payouts/wallets/{walletId}/bank-balance.
+      responses:
+        "200":
+          description: Wallets with per-mode availability and balanceSource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Wallet' }
+
+  /payouts/wallets/{walletId}/bank-balance:
+    get:
+      tags: [Wallet]
+      summary: Live bank balance (Connected Banking)
+      description: >
+        Requires scope payouts:read. Fetches the real-time balance from the
+        partner bank for a Connected Banking (Yes Bank) wallet.
+      parameters:
+        - { name: walletId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { description: "{ walletId, accountNumber (masked), clearBalance, balFetchTimeStamp, currency, balanceSource: bank }" }
+        "400": { description: "NOT_CONNECTED_BANKING / NO_LINKED_ACCOUNT" }
+        "404": { description: "WALLET_NOT_FOUND" }
+        "502": { description: "Partner bank API failure (BANK_UPSTREAM_ERROR)" }
+
+  /payouts/statement:
+    get:
+      tags: [Wallet]
+      summary: Wallet transaction statement
+      description: "Requires scope payouts:read."
+      parameters:
+        - { name: dateFrom, in: query, schema: { type: string, format: date } }
+        - { name: dateTo, in: query, schema: { type: string, format: date } }
+        - { name: type, in: query, schema: { type: string } }
+        - { name: walletId, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: pageSize, in: query, schema: { type: integer, maximum: 200, default: 50 } }
+      responses:
+        "200":
+          description: Paginated wallet ledger.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Transaction' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        "400": { description: "dateFrom/dateTo must be valid ISO-8601 dates (VALIDATION_FAILED)" }
+
+  /payouts/beneficiaries:
+    get:
+      tags: [Beneficiaries]
+      summary: List beneficiaries
+      description: "Requires scope payouts:read. Account numbers are masked."
+      responses:
+        "200": { description: Beneficiary list }
+    post:
+      tags: [Beneficiaries]
+      summary: Create a beneficiary
+      description: "Requires scope payouts:write."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Beneficiary' }
+      responses:
+        "201": { description: Created }
+        "400": { description: "Validation failed" }
+
+  /payouts/beneficiaries/{id}:
+    get:
+      tags: [Beneficiaries]
+      summary: Get a beneficiary
+      description: "Requires scope payouts:read. Account number is masked."
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Beneficiary }
+        "404": { description: "BENEFICIARY_NOT_FOUND" }
+    put:
+      tags: [Beneficiaries]
+      summary: Update a beneficiary
+      description: "Requires scope payouts:write. Partial update — any subset of fields."
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Beneficiary' }
+      responses:
+        "200": { description: Updated }
+        "404": { description: "BENEFICIARY_NOT_FOUND" }
+    delete:
+      tags: [Beneficiaries]
+      summary: Delete a beneficiary
+      description: "Requires scope payouts:write."
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Deleted }
+        "404": { description: "BENEFICIARY_NOT_FOUND" }
+
+webhooks:
+  payoutEvent:
+    post:
+      summary: Payout status callback (sent by UnPay to your URL)
+      description: >
+        Configure a webhook in Developers → Webhooks. Deliveries carry a stable
+        `X-Webhook-Delivery` id for de-duplication and are signed two ways:
+        `X-Webhook-Signature` (sha256 HMAC over the raw body, legacy) and
+        `X-Webhook-Signature-V2` (format `t=TIMESTAMP,v1=HMAC`, where the HMAC is
+        computed over the string `TIMESTAMP.BODY`) alongside an
+        `X-Webhook-Timestamp` header — verify V2 and reject stale timestamps for
+        replay protection.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  enum: [payout.initiated, payout.processing, payout.completed, payout.failed, payout.reversed]
+                timestamp: { type: string, format: date-time }
+                data: { type: object }
+      responses:
+        "200": { description: Acknowledge receipt with 2xx }

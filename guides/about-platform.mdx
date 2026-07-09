@@ -1,4 +1,54 @@
 ---
-title: "About Platform"
+title: "About the Platform"
+description: "What UnPay offers, who it's for, and how the pieces fit together."
 ---
 
+UnPay is **API-first financial and communication infrastructure**. It lets you
+add two capabilities to your product without stitching together multiple
+vendors:
+
+<CardGroup cols={2}>
+  <Card title="Payouts" icon="money-bill-transfer">
+    Programmatic disbursements to bank accounts and UPI IDs over IMPS, NEFT,
+    RTGS and UPI, with wallets, saved beneficiaries, statements and bulk (up to
+    500 per call).
+  </Card>
+  <Card title="AI Calling" icon="phone-volume">
+    AI voice agents and outbound calling campaigns, with contacts, scheduling,
+    retries, and call records that include transcripts, recordings and AI
+    summaries.
+  </Card>
+</CardGroup>
+
+## Who it's for
+
+- **Platforms & marketplaces** paying out sellers, gig workers or vendors.
+- **Fintechs & lenders** disbursing loans and refunds at scale.
+- **Sales & support teams** automating outbound calls, reminders and surveys.
+- **Partners & integrators** embedding payouts or voice into their own product.
+
+## How access works
+
+Everything is exposed through one REST API at
+`https://api.unpay.co/api/public/v1`, authenticated with
+[scoped API keys](/api-reference/authentication). You decide exactly what each
+integration can do by granting [scopes](/api-reference/scopes), and you can
+harden a key further with IP allowlists and
+[request signing](/api-reference/request-signing).
+
+## Reliability principles
+
+| Principle | What it means for you |
+|---|---|
+| Idempotent payouts | Retries are safe — see [Idempotency](/api-reference/idempotency). |
+| Per-key rate limits | Predictable, cluster-wide budgets — see [Rate limits](/api-reference/rate-limits). |
+| Signed webhooks | Verify authenticity and reject replays — see [Verifying webhooks](/guides/verify-webhooks). |
+| Stable error codes | Program against `code`, not prose — see [Errors](/api-reference/errors). |
+
+## Where to go next
+
+<CardGroup cols={3}>
+  <Card title="Send your first payout" icon="money-check-dollar" href="/guides/first-payout" />
+  <Card title="Run your first campaign" icon="phone-arrow-up-right" href="/guides/first-campaign" />
+  <Card title="Verify webhooks" icon="bell" href="/guides/verify-webhooks" />
+</CardGroup>

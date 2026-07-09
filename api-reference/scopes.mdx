@@ -1,0 +1,53 @@
+---
+title: "Scopes"
+description: "Fine-grained, per-resource permissions granted to each API key."
+---
+
+Every API key is granted an explicit set of **scopes**. A request that touches a
+resource without the matching scope is rejected with `403`:
+
+```json
+{ "error": "This API key is missing the required scope: payouts:write" }
+```
+
+Grant the minimum scopes an integration needs. The special `admin` scope
+satisfies every requirement — use it sparingly.
+
+## Payouts
+
+| Scope | Grants |
+|---|---|
+| `payouts:read` | View payouts, wallet balance, beneficiaries and statement. |
+| `payouts:write` | Initiate payouts and manage beneficiaries. |
+
+## AI Calling
+
+| Scope | Grants |
+|---|---|
+| `agents:read` | View agents. |
+| `agents:write` | Create and manage agents. |
+| `campaigns:read` | View campaigns. |
+| `campaigns:write` | Create and manage campaigns. |
+| `contacts:read` | View campaign contacts. |
+| `contacts:write` | Create and manage contacts. |
+| `calls:read` | View call history, transcripts and recordings. |
+| `calls:write` | Trigger and manage calls. |
+| `webhooks:read` | View webhook subscriptions. |
+| `webhooks:write` | Manage webhook subscriptions. |
+| `knowledge:read` | View knowledge bases. |
+| `knowledge:write` | Upload knowledge base documents. |
+| `phone-numbers:read` | View phone numbers. |
+| `phone-numbers:write` | Purchase and assign phone numbers. |
+| `analytics:read` | View analytics data. |
+| `credits:read` | View credit balance and usage. |
+
+## Administrative
+
+| Scope | Grants |
+|---|---|
+| `admin` | Full administrative access — satisfies any scope check. |
+
+<Tip>
+  Read and write are independent. A key with only `payouts:read` can list
+  payouts and check balances but cannot move money.
+</Tip>

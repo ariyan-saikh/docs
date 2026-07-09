@@ -1,0 +1,60 @@
+---
+title: "AI Calling"
+description: "Common questions about agents, campaigns, contacts, credits and call outcomes."
+---
+
+## What's the difference between `incoming` and `flow` agents?
+
+- **`flow`** — outbound agents that run calling **campaigns** against a contact
+  list.
+- **`incoming`** — agents that **answer inbound calls** on a purchased number,
+  with optional live transfer.
+
+Set the `type` when you create the agent — it can't be inferred.
+
+## How is usage billed?
+
+Voice minutes are metered in **credits**. Check your remaining balance any time
+with `GET /me`. Top up before launching a large campaign.
+
+## What phone number format should contacts use?
+
+E.164, e.g. `+919812345678`. Add contacts to a campaign with
+`POST /campaigns/{campaignId}/contacts`. `customFields` are merged into the call
+context for personalisation (e.g. an appointment time).
+
+## Can I control when a campaign calls?
+
+Yes. Set `scheduleEnabled: true` with `scheduleTimeStart` / `scheduleTimeEnd`
+(HH:MM), `scheduleDays` and `scheduleTimezone`. Calls only happen inside that
+window.
+
+## Can failed calls be retried automatically?
+
+Enable `retryEnabled` and tune `retryMaxAttempts` and `retryIntervalMinutes`.
+The campaign re-dials contacts that didn't connect, within your retry policy.
+
+## What data do I get back from a call?
+
+Each call record includes `status`, `duration`, `recordingUrl`, `transcript`,
+`aiSummary`, `sentiment` and `creditsUsed`. Fetch them with `GET /calls` or a
+single `GET /calls/{id}`.
+
+## What do the call statuses mean?
+
+| Status | Meaning |
+|---|---|
+| `completed` | The call connected and finished. |
+| `no_answer` | Nobody picked up. |
+| `busy` | The line was busy. |
+| `failed` | A technical error prevented the call. |
+
+Use the corresponding [webhook](/guides/verify-webhooks) events
+(`call.completed`, `call.no_answer`, `call.busy`, `call.failed`, …) to react in
+real time.
+
+## Why isn't my campaign dialing?
+
+Check that the campaign has: an `agentId`, at least one contact, a caller-ID
+number, and — if scheduling is on — that the current time falls inside the
+call window. Also confirm your credit balance via `GET /me`.

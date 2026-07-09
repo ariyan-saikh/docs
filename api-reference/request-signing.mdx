@@ -1,0 +1,91 @@
+---
+title: "Request Signing"
+description: "Optional HMAC request signing for high-assurance API keys."
+---
+
+For high-value integrations you can require that every request is
+**cryptographically signed**, on top of the API key. Signing proves the request
+body wasn't tampered with in transit and blocks replay attacks.
+
+Enable it per key by turning on **Require signed requests** in
+**Developers → API Keys**. When enabled, a request missing a valid signature is
+rejected with `401` (`SIGNATURE_REQUIRED`).
+
+## Required headers
+
+Every signed request must include:
+
+| Header | Value |
+|---|---|
+| `X-Unpay-Timestamp` | Current Unix time in **seconds**. Must be within **300s** of server time. |
+| `X-Unpay-Nonce` | A unique, single-use value per request (e.g. a UUID). Replays are rejected. |
+| `X-Unpay-Signature` | `sha256=` + the HMAC hex digest (below). |
+
+## Computing the signature
+
+The signature is an HMAC-SHA256 over a dot-joined base string, keyed with your
+key's **signing secret** (provisioned when you enable signing / rotate the key):
+
+```
+base   = `${timestamp}.${nonce}.${METHOD}.${path}.${rawBody}`
+signature = "sha256=" + HMAC_SHA256(signingSecret, base)  // hex
+```
+
+- `METHOD` — uppercase HTTP method (`POST`, `GET`, …).
+- `path` — the request path **including query string** (the server signs `originalUrl`).
+- `rawBody` — the exact raw request body bytes (empty string for GET).
+
+<CodeGroup>
+```javascript Node.js
+import crypto from "crypto";
+
+function signedHeaders({ method, path, body, signingSecret }) {
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const nonce = crypto.randomUUID();
+  const raw = body ? JSON.stringify(body) : "";
+  const base = `${timestamp}.${nonce}.${method.toUpperCase()}.${path}.${raw}`;
+  const signature =
+    "sha256=" + crypto.createHmac("sha256", signingSecret).update(base).digest("hex");
+  return {
+    "X-Unpay-Timestamp": timestamp,
+    "X-Unpay-Nonce": nonce,
+    "X-Unpay-Signature": signature,
+  };
+}
+```
+
+```python Python
+import time, uuid, hmac, hashlib, json
+
+def signed_headers(method, path, body, signing_secret):
+    timestamp = str(int(time.time()))
+    nonce = str(uuid.uuid4())
+    raw = json.dumps(body, separators=(",", ":")) if body else ""
+    base = f"{timestamp}.{nonce}.{method.upper()}.{path}.{raw}"
+    signature = "sha256=" + hmac.new(
+        signing_secret.encode(), base.encode(), hashlib.sha256
+    ).hexdigest()
+    return {
+        "X-Unpay-Timestamp": timestamp,
+        "X-Unpay-Nonce": nonce,
+        "X-Unpay-Signature": signature,
+    }
+```
+</CodeGroup>
+
+<Warning>
+  Sign the **exact bytes** you send. If you serialize the body twice (once for
+  signing, once for the HTTP client) make sure both produce identical output, or
+  the signature will not match.
+</Warning>
+
+## Rejection codes
+
+All are HTTP `401`:
+
+| `code` | Meaning |
+|---|---|
+| `SIGNATURE_REQUIRED` | Key requires signing but headers were missing. |
+| `SIGNATURE_TIMESTAMP_INVALID` | Timestamp missing, malformed, or outside the 300s window. |
+| `SIGNATURE_INVALID` | Computed HMAC did not match. |
+| `SIGNATURE_REPLAY` | Nonce was already used within the window. |

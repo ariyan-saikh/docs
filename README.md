@@ -1,55 +1,39 @@
-# Mintlify Starter Kit
+# UnPay Docs
 
-Use the starter kit to get your docs deployed and ready to customize.
+Public developer documentation for the [UnPay](https://www.unpay.co) API —
+Payments (Payouts), Banking (wallets & Connected Banking), and Artificial
+Intelligence (AI Calling). Built with [Mintlify](https://mintlify.com).
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+## Structure
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+| Path | Contents |
+|---|---|
+| `docs.json` | Site config and navigation (tabs: Get started · Payments · Banking · Artificial Intelligence · API reference). |
+| `index.mdx`, `quickstart.mdx`, `how-unpay-works.mdx` | Get-started pages. |
+| `guides/` | Task walkthroughs (first payout, banking, first campaign, verifying webhooks). |
+| `kb/` | Knowledge base / troubleshooting articles. |
+| `api-reference/` | API concepts + curated pages. |
+| `api-reference/openapi/payouts.yaml` | OpenAPI spec for the Payouts API. |
+| `api-reference/openapi/ai-calling.yaml` | OpenAPI spec for the AI Calling API. |
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+The API reference pages are generated from the two OpenAPI specs. Keep those
+specs in sync with the source of truth in the platform repo:
 
-## AI-assisted writing
+- `plugins/payouts/routes/public/payout.routes.ts` → `payouts.yaml`
+- `server/routes/public-api.ts` → `ai-calling.yaml`
 
-Set up your AI coding tool to work with Mintlify:
+## Local development
+
+Install the [Mintlify CLI](https://www.npmjs.com/package/mint) and run the dev
+server from the repo root (where `docs.json` lives):
 
 ```bash
-npx skills add https://mintlify.com/docs
-```
-
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
-
-See the [AI tools guides](/ai-tools) for tool-specific setup.
-
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
-```
 npm i -g mint
+mint dev            # preview at http://localhost:3000
+mint broken-links   # validate internal links before pushing
 ```
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
+## Publishing
 
-```
-mint dev
-```
-
-View your local preview at `http://localhost:3000`.
-
-## Publishing changes
-
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+Changes deploy automatically after merging to the default branch via the
+Mintlify GitHub app.
